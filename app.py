@@ -106,15 +106,39 @@ learner_df.columns = [str(col).strip() for col in learner_df.columns]
 reg_df.columns = [str(col).strip() for col in reg_df.columns]
 
 if "scan_date" in learner_df.columns:
-    learner_df["scan_date"] = pd.to_datetime(learner_df["scan_date"], errors="coerce")
+    learner_df["scan_date"] = pd.to_datetime(learner_df["scan_date"], errors="coerce", dayfirst=True)
 
 if "time_stamp" in learner_df.columns:
-    learner_df["time_stamp"] = pd.to_datetime(learner_df["time_stamp"], errors="coerce")
+    learner_df["time_stamp"] = learner_df["time_stamp"].astype(str).str.strip()
 
 if "Age" in learner_df.columns:
-    learner_df["Age"] = pd.to_numeric(learner_df["Age"], errors="coerce")
+    learner_df["Age"] = learner_df["Age"].astype(str).str.strip()
 
-# filtered copy
+# Remove blank Age values
+if "Age" in learner_df.columns:
+    learner_df.loc[learner_df["Age"].isin(["", "nan", "None"]), "Age"] = pd.NA
+
+# Custom order for Age groups
+age_order = [
+    "0 - 2 yrs",
+    "3 - 4 yrs",
+    "5 yrs",
+    "6 yrs",
+    "7 yrs",
+    "8 yrs",
+    "9 yrs",
+    "10 yrs",
+    "11 yrs",
+    "12 yrs",
+    "13 yrs",
+    "14 yrs",
+    "15 yrs",
+    "16 yrs",
+    "17 yrs",
+    "18 yrs"
+]
+
+# Keep a filtered copy
 filtered_df = learner_df.copy()
 
 # ----------------------------
@@ -175,21 +199,17 @@ if "Gender" in filtered_df.columns:
         filtered_df = filtered_df[filtered_df["Gender"].isin(selected_gender)]
 
 # Age filter
-if "Age" in filtered_df.columns and filtered_df["Age"].notna().any():
-    min_age = int(filtered_df["Age"].min())
-    max_age = int(filtered_df["Age"].max())
+if "Age" in filtered_df.columns:
+    available_ages = [x for x in age_order if x in filtered_df["Age"].dropna().unique()]
 
-    selected_age = st.sidebar.slider(
-        "Age Range",
-        min_value=min_age,
-        max_value=max_age,
-        value=(min_age, max_age)
-    )
-
-    filtered_df = filtered_df[
-        (filtered_df["Age"] >= selected_age[0]) &
-        (filtered_df["Age"] <= selected_age[1])
-    ]
+    if available_ages:
+        selected_age_groups = st.sidebar.multiselect(
+            "Age Group",
+            options=available_ages,
+            default=available_ages
+        )
+        if selected_age_groups:
+            filtered_df = filtered_df[filtered_df["Age"].isin(selected_age_groups)]
 
 # ----------------------------
 # TABS
@@ -208,7 +228,11 @@ with tab1:
 
     total_records = len(filtered_df)
     total_registered = len(reg_df)
-    avg_age = round(filtered_df["Age"].mean(), 1) if "Age" in filtered_df.columns and filtered_df["Age"].notna().any() else 0
+
+    if "Age" in filtered_df.columns and filtered_df["Age"].notna().any():
+        most_common_age_group = filtered_df["Age"].mode().iloc[0]
+    else:
+        most_common_age_group = "N/A"
 
     k1, k2, k3 = st.columns(3)
 
@@ -231,8 +255,8 @@ with tab1:
     with k3:
         st.markdown(f"""
         <div class="kpi-box">
-            <div class="kpi-title">Average Age</div>
-            <div class="kpi-value">{avg_age}</div>
+            <div class="kpi-title">Most Common Age Group</div>
+            <div class="kpi-value">{most_common_age_group}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -280,7 +304,12 @@ with tab1:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Age Distribution")
         if "Age" in filtered_df.columns and filtered_df["Age"].notna().any():
-            age_count = filtered_df["Age"].value_counts().sort_index()
+            age_count = filtered_df["Age"].value_counts()
+
+            age_count = age_count.reindex(age_order)
+            age_count = age_count.dropna()
+            age_count = age_count[age_count > 0]
+
             st.bar_chart(age_count)
         else:
             st.info("No age data available.")
