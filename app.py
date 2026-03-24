@@ -106,19 +106,19 @@ learner_df.columns = [str(col).strip() for col in learner_df.columns]
 reg_df.columns = [str(col).strip() for col in reg_df.columns]
 
 if "scan_date" in learner_df.columns:
-    learner_df["scan_date"] = pd.to_datetime(learner_df["scan_date"], errors="coerce", dayfirst=True)
+    learner_df["scan_date"] = pd.to_datetime(
+        learner_df["scan_date"],
+        errors="coerce",
+        dayfirst=True
+    )
 
 if "time_stamp" in learner_df.columns:
     learner_df["time_stamp"] = learner_df["time_stamp"].astype(str).str.strip()
 
 if "Age" in learner_df.columns:
     learner_df["Age"] = learner_df["Age"].astype(str).str.strip()
-
-# Remove blank Age values
-if "Age" in learner_df.columns:
     learner_df.loc[learner_df["Age"].isin(["", "nan", "None"]), "Age"] = pd.NA
 
-# Custom order for Age groups
 age_order = [
     "0 - 2 yrs",
     "3 - 4 yrs",
@@ -138,7 +138,9 @@ age_order = [
     "18 yrs"
 ]
 
-# Keep a filtered copy
+# ----------------------------
+# FILTERED COPY
+# ----------------------------
 filtered_df = learner_df.copy()
 
 # ----------------------------
@@ -146,7 +148,6 @@ filtered_df = learner_df.copy()
 # ----------------------------
 st.sidebar.header("Filters")
 
-# Date filter
 if "scan_date" in filtered_df.columns and filtered_df["scan_date"].notna().any():
     min_date = filtered_df["scan_date"].min().date()
     max_date = filtered_df["scan_date"].max().date()
@@ -165,7 +166,6 @@ if "scan_date" in filtered_df.columns and filtered_df["scan_date"].notna().any()
             (filtered_df["scan_date"].dt.date <= end_date)
         ]
 
-# Direction filter
 if "direction" in filtered_df.columns:
     direction_options = sorted([x for x in filtered_df["direction"].dropna().unique()])
     selected_direction = st.sidebar.multiselect(
@@ -176,7 +176,6 @@ if "direction" in filtered_df.columns:
     if selected_direction:
         filtered_df = filtered_df[filtered_df["direction"].isin(selected_direction)]
 
-# Grade filter
 if "Grade" in filtered_df.columns:
     grade_options = sorted([x for x in filtered_df["Grade"].dropna().unique()])
     selected_grade = st.sidebar.multiselect(
@@ -187,7 +186,6 @@ if "Grade" in filtered_df.columns:
     if selected_grade:
         filtered_df = filtered_df[filtered_df["Grade"].isin(selected_grade)]
 
-# Gender filter
 if "Gender" in filtered_df.columns:
     gender_options = sorted([x for x in filtered_df["Gender"].dropna().unique()])
     selected_gender = st.sidebar.multiselect(
@@ -198,10 +196,8 @@ if "Gender" in filtered_df.columns:
     if selected_gender:
         filtered_df = filtered_df[filtered_df["Gender"].isin(selected_gender)]
 
-# Age filter
 if "Age" in filtered_df.columns:
     available_ages = [x for x in age_order if x in filtered_df["Age"].dropna().unique()]
-
     if available_ages:
         selected_age_groups = st.sidebar.multiselect(
             "Age Group",
@@ -260,9 +256,6 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
 
-    # ----------------------------
-    # CHARTS ROW 1
-    # ----------------------------
     c1, c2 = st.columns(2)
 
     with c1:
@@ -271,6 +264,11 @@ with tab1:
         if "Grade" in filtered_df.columns and not filtered_df.empty:
             grade_count = filtered_df["Grade"].value_counts().sort_index()
             st.bar_chart(grade_count)
+
+            grade_table = grade_count.reset_index()
+            grade_table.columns = ["Grade", "Count"]
+            st.markdown("#### Data Table")
+            st.dataframe(grade_table, use_container_width=True)
         else:
             st.info("No Grade data available.")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -281,13 +279,15 @@ with tab1:
         if "Gender" in filtered_df.columns and not filtered_df.empty:
             gender_count = filtered_df["Gender"].value_counts()
             st.bar_chart(gender_count)
+
+            gender_table = gender_count.reset_index()
+            gender_table.columns = ["Gender", "Count"]
+            st.markdown("#### Data Table")
+            st.dataframe(gender_table, use_container_width=True)
         else:
             st.info("No Gender data available.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # ----------------------------
-    # CHARTS ROW 2
-    # ----------------------------
     c3, c4 = st.columns(2)
 
     with c3:
@@ -296,6 +296,11 @@ with tab1:
         if "direction" in filtered_df.columns and not filtered_df.empty:
             direction_count = filtered_df["direction"].value_counts()
             st.bar_chart(direction_count)
+
+            direction_table = direction_count.reset_index()
+            direction_table.columns = ["Direction", "Count"]
+            st.markdown("#### Data Table")
+            st.dataframe(direction_table, use_container_width=True)
         else:
             st.info("No direction data available.")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -305,19 +310,20 @@ with tab1:
         st.subheader("Age Distribution")
         if "Age" in filtered_df.columns and filtered_df["Age"].notna().any():
             age_count = filtered_df["Age"].value_counts()
-
             age_count = age_count.reindex(age_order)
             age_count = age_count.dropna()
             age_count = age_count[age_count > 0]
 
             st.bar_chart(age_count)
+
+            age_table = age_count.reset_index()
+            age_table.columns = ["Age Group", "Count"]
+            st.markdown("#### Data Table")
+            st.dataframe(age_table, use_container_width=True)
         else:
             st.info("No age data available.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # ----------------------------
-    # DIRECTION TREND BY DATE
-    # ----------------------------
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
     st.subheader("Direction Trend by Date")
 
@@ -337,7 +343,7 @@ with tab1:
         )
 
         st.line_chart(direction_trend)
-        st.markdown("### Trend Data Table")
+        st.markdown("#### Data Table")
         st.dataframe(direction_trend, use_container_width=True)
     else:
         st.info("No scan date or direction data available for trend analysis.")
