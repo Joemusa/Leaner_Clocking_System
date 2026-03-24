@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
+import matplotlib.pyplot as plt
 
 # ----------------------------
 # PAGE CONFIG
@@ -139,6 +140,55 @@ age_order = [
 ]
 
 # ----------------------------
+# CHART HELPERS
+# ----------------------------
+def plot_bar_with_labels(series, title, xlabel="", ylabel="Count", rotate_xticks=False):
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    bars = ax.bar(series.index.astype(str), series.values)
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.grid(axis="y", linestyle="--", alpha=0.3)
+
+    if rotate_xticks:
+        plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
+
+    max_val = max(series.values) if len(series.values) > 0 else 0
+    offset = max(max_val * 0.01, 0.1)
+
+    for bar in bars:
+        height = bar.get_height()
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            height + offset,
+            f"{int(height)}",
+            ha="center",
+            va="bottom",
+            fontsize=9
+        )
+
+    fig.tight_layout()
+    st.pyplot(fig)
+
+def plot_line_with_labels(df, title, xlabel="", ylabel="Count"):
+    fig, ax = plt.subplots(figsize=(10, 4.8))
+
+    for col in df.columns:
+        ax.plot(df.index.astype(str), df[col].values, marker="o", label=str(col))
+        for x, y in zip(df.index.astype(str), df[col].values):
+            ax.text(x, y, str(int(y)), fontsize=8, ha="center", va="bottom")
+
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.grid(True, linestyle="--", alpha=0.3)
+    ax.legend()
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
+
+    fig.tight_layout()
+    st.pyplot(fig)
+
+# ----------------------------
 # FILTERED COPY
 # ----------------------------
 filtered_df = learner_df.copy()
@@ -263,12 +313,7 @@ with tab1:
         st.subheader("Learners by Grade")
         if "Grade" in filtered_df.columns and not filtered_df.empty:
             grade_count = filtered_df["Grade"].value_counts().sort_index()
-            st.bar_chart(grade_count)
-
-            grade_table = grade_count.reset_index()
-            grade_table.columns = ["Grade", "Count"]
-            st.markdown("#### Data Table")
-            st.dataframe(grade_table, use_container_width=True)
+            plot_bar_with_labels(grade_count, "Learners by Grade", xlabel="Grade")
         else:
             st.info("No Grade data available.")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -278,12 +323,7 @@ with tab1:
         st.subheader("Learners by Gender")
         if "Gender" in filtered_df.columns and not filtered_df.empty:
             gender_count = filtered_df["Gender"].value_counts()
-            st.bar_chart(gender_count)
-
-            gender_table = gender_count.reset_index()
-            gender_table.columns = ["Gender", "Count"]
-            st.markdown("#### Data Table")
-            st.dataframe(gender_table, use_container_width=True)
+            plot_bar_with_labels(gender_count, "Learners by Gender", xlabel="Gender")
         else:
             st.info("No Gender data available.")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -295,12 +335,7 @@ with tab1:
         st.subheader("Movement by Direction")
         if "direction" in filtered_df.columns and not filtered_df.empty:
             direction_count = filtered_df["direction"].value_counts()
-            st.bar_chart(direction_count)
-
-            direction_table = direction_count.reset_index()
-            direction_table.columns = ["Direction", "Count"]
-            st.markdown("#### Data Table")
-            st.dataframe(direction_table, use_container_width=True)
+            plot_bar_with_labels(direction_count, "Movement by Direction", xlabel="Direction")
         else:
             st.info("No direction data available.")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -313,13 +348,7 @@ with tab1:
             age_count = age_count.reindex(age_order)
             age_count = age_count.dropna()
             age_count = age_count[age_count > 0]
-
-            st.bar_chart(age_count)
-
-            age_table = age_count.reset_index()
-            age_table.columns = ["Age Group", "Count"]
-            st.markdown("#### Data Table")
-            st.dataframe(age_table, use_container_width=True)
+            plot_bar_with_labels(age_count, "Age Distribution", xlabel="Age Group", rotate_xticks=True)
         else:
             st.info("No age data available.")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -342,9 +371,7 @@ with tab1:
             .sort_index()
         )
 
-        st.line_chart(direction_trend)
-        st.markdown("#### Data Table")
-        st.dataframe(direction_trend, use_container_width=True)
+        plot_line_with_labels(direction_trend, "Direction Trend by Date", xlabel="Date")
     else:
         st.info("No scan date or direction data available for trend analysis.")
 
