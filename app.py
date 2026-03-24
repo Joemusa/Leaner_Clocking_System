@@ -60,6 +60,13 @@ st.markdown("""
         font-weight: 700;
         margin-bottom: 10px;
     }
+
+    .scroll-chart {
+        overflow-x: auto;
+        overflow-y: hidden;
+        width: 100%;
+        padding-bottom: 8px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -184,12 +191,14 @@ def plot_bar_with_labels(series, xlabel="", ylabel="Count", rotate_xticks=False)
     fig.tight_layout()
     st.pyplot(fig)
 
-def plot_line_with_labels(df, xlabel="", ylabel="Count"):
+def plot_line_with_labels(df, xlabel="", ylabel="Count", scroll_key="chart"):
     if df.empty:
         st.info("No data available.")
         return
 
-    fig, ax = plt.subplots(figsize=(8, 4.5))
+    width = max(8, len(df.index) * 0.9)
+
+    fig, ax = plt.subplots(figsize=(width, 4.5))
 
     for col in df.columns:
         ax.plot(df.index, df[col].values, marker="o", label=str(col))
@@ -205,7 +214,18 @@ def plot_line_with_labels(df, xlabel="", ylabel="Count"):
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
 
     fig.tight_layout()
-    st.pyplot(fig)
+
+    chart_bytes_key = f"{scroll_key}_bytes"
+    import io
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", bbox_inches="tight", dpi=150)
+    buf.seek(0)
+
+    st.markdown('<div class="scroll-chart">', unsafe_allow_html=True)
+    st.image(buf.getvalue())
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    plt.close(fig)
 
 # ----------------------------
 # FILTERED COPY
@@ -393,7 +413,7 @@ with tab2:
                 .unstack(fill_value=0)
                 .sort_index()
             )
-            plot_line_with_labels(direction_trend, xlabel="Date")
+            plot_line_with_labels(direction_trend, xlabel="Date", scroll_key="direction_trend")
         else:
             st.info("No scan date or direction data available.")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -412,7 +432,7 @@ with tab2:
                 .unstack(fill_value=0)
                 .sort_index()
             )
-            plot_line_with_labels(gender_trend, xlabel="Date")
+            plot_line_with_labels(gender_trend, xlabel="Date", scroll_key="gender_trend")
         else:
             st.info("No scan date or gender data available.")
         st.markdown('</div>', unsafe_allow_html=True)
