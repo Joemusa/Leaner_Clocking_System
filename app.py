@@ -100,12 +100,11 @@ def load_data():
 learner_df, reg_df = load_data()
 
 # ----------------------------
-# CLEAN LEARNER DATA
+# CLEAN DATA
 # ----------------------------
 learner_df.columns = [str(col).strip() for col in learner_df.columns]
 reg_df.columns = [str(col).strip() for col in reg_df.columns]
 
-# Standardize expected columns if present
 if "scan_date" in learner_df.columns:
     learner_df["scan_date"] = pd.to_datetime(learner_df["scan_date"], errors="coerce")
 
@@ -115,7 +114,7 @@ if "time_stamp" in learner_df.columns:
 if "Age" in learner_df.columns:
     learner_df["Age"] = pd.to_numeric(learner_df["Age"], errors="coerce")
 
-# Keep a filtered copy
+# filtered copy
 filtered_df = learner_df.copy()
 
 # ----------------------------
@@ -197,7 +196,7 @@ if "Age" in filtered_df.columns and filtered_df["Age"].notna().any():
 # ----------------------------
 tab1, tab2, tab3 = st.tabs([
     "Dashboard",
-    "Leaner Tracker Table",
+    "Learner Tracker Table",
     "Registration Form Table"
 ])
 
@@ -208,11 +207,10 @@ with tab1:
     st.markdown('<div class="section-title">Summary KPIs</div>', unsafe_allow_html=True)
 
     total_records = len(filtered_df)
-    total_grades = filtered_df["Grade"].nunique() if "Grade" in filtered_df.columns else 0
-    total_genders = filtered_df["Gender"].nunique() if "Gender" in filtered_df.columns else 0
+    total_registered = len(reg_df)
     avg_age = round(filtered_df["Age"].mean(), 1) if "Age" in filtered_df.columns and filtered_df["Age"].notna().any() else 0
 
-    k1, k2, k3, k4 = st.columns(4)
+    k1, k2, k3 = st.columns(3)
 
     with k1:
         st.markdown(f"""
@@ -225,20 +223,12 @@ with tab1:
     with k2:
         st.markdown(f"""
         <div class="kpi-box">
-            <div class="kpi-title">Grades</div>
-            <div class="kpi-value">{total_grades}</div>
+            <div class="kpi-title">Total Registered</div>
+            <div class="kpi-value">{total_registered}</div>
         </div>
         """, unsafe_allow_html=True)
 
     with k3:
-        st.markdown(f"""
-        <div class="kpi-box">
-            <div class="kpi-title">Gender Types</div>
-            <div class="kpi-value">{total_genders}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with k4:
         st.markdown(f"""
         <div class="kpi-box">
             <div class="kpi-title">Average Age</div>
@@ -326,10 +316,10 @@ with tab1:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------------------
-# LEANER TRACKER TABLE TAB
+# LEARNER TRACKER TABLE TAB
 # ----------------------------
 with tab2:
-    st.subheader("Leaner Tracker Data")
+    st.subheader("Learner Tracker Data")
     st.dataframe(filtered_df, use_container_width=True)
 
 # ----------------------------
