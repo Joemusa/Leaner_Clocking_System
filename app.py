@@ -26,7 +26,7 @@ client = gspread.authorize(creds)
 
 # Open workbook and worksheet
 workbook = client.open("Learner Clocking System")
-worksheet = workbook.worksheet("Learner tracker")
+worksheet = workbook.worksheet("Learner Tracker")
 
 # Read data
 data = worksheet.get_all_records()
