@@ -85,7 +85,7 @@ client = gspread.authorize(creds)
 def load_data():
     workbook = client.open_by_key("1bEZcEAxRAcrlo_Aa92a0u_hFCZsaBZ2DSCMIKNqyblM")
 
-    learner_ws = workbook.worksheet("Leaner Tracker")
+    learner_ws = workbook.worksheet("Learner Tracker")
     reg_ws = workbook.worksheet("Registration Form")
 
     learner_data = learner_ws.get_all_records()
