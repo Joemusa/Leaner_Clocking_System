@@ -3,6 +3,7 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 # ----------------------------
 # PAGE CONFIG
@@ -142,13 +143,24 @@ age_order = [
 # ----------------------------
 # CHART HELPERS
 # ----------------------------
-def plot_bar_with_labels(series, title, xlabel="", ylabel="Count", rotate_xticks=False):
+def style_axes(ax):
+    ax.grid(axis="y", linestyle="--", alpha=0.3)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+    ax.spines["bottom"].set_visible(False)
+
+def plot_bar_with_labels(series, xlabel="", ylabel="Count", rotate_xticks=False):
+    if series.empty:
+        st.info("No data available.")
+        return
+
     fig, ax = plt.subplots(figsize=(8, 4.5))
     bars = ax.bar(series.index.astype(str), series.values)
-    ax.set_title(title)
+
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-    ax.grid(axis="y", linestyle="--", alpha=0.3)
+    style_axes(ax)
 
     if rotate_xticks:
         plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
@@ -170,19 +182,24 @@ def plot_bar_with_labels(series, title, xlabel="", ylabel="Count", rotate_xticks
     fig.tight_layout()
     st.pyplot(fig)
 
-def plot_line_with_labels(df, title, xlabel="", ylabel="Count"):
-    fig, ax = plt.subplots(figsize=(10, 4.8))
+def plot_line_with_labels(df, xlabel="", ylabel="Count"):
+    if df.empty:
+        st.info("No data available.")
+        return
+
+    fig, ax = plt.subplots(figsize=(8, 4.5))
 
     for col in df.columns:
-        ax.plot(df.index.astype(str), df[col].values, marker="o", label=str(col))
-        for x, y in zip(df.index.astype(str), df[col].values):
+        ax.plot(df.index, df[col].values, marker="o", label=str(col))
+        for x, y in zip(df.index, df[col].values):
             ax.text(x, y, str(int(y)), fontsize=8, ha="center", va="bottom")
 
-    ax.set_title(title)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-    ax.grid(True, linestyle="--", alpha=0.3)
+    style_axes(ax)
     ax.legend()
+
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%d-%b-%y"))
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
 
     fig.tight_layout()
@@ -313,7 +330,7 @@ with tab1:
         st.subheader("Learners by Grade")
         if "Grade" in filtered_df.columns and not filtered_df.empty:
             grade_count = filtered_df["Grade"].value_counts().sort_index()
-            plot_bar_with_labels(grade_count, "Learners by Grade", xlabel="Grade")
+            plot_bar_with_labels(grade_count, xlabel="Grade")
         else:
             st.info("No Grade data available.")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -323,7 +340,7 @@ with tab1:
         st.subheader("Learners by Gender")
         if "Gender" in filtered_df.columns and not filtered_df.empty:
             gender_count = filtered_df["Gender"].value_counts()
-            plot_bar_with_labels(gender_count, "Learners by Gender", xlabel="Gender")
+            plot_bar_with_labels(gender_count, xlabel="Gender")
         else:
             st.info("No Gender data available.")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -335,7 +352,7 @@ with tab1:
         st.subheader("Movement by Direction")
         if "direction" in filtered_df.columns and not filtered_df.empty:
             direction_count = filtered_df["direction"].value_counts()
-            plot_bar_with_labels(direction_count, "Movement by Direction", xlabel="Direction")
+            plot_bar_with_labels(direction_count, xlabel="Direction")
         else:
             st.info("No direction data available.")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -348,34 +365,50 @@ with tab1:
             age_count = age_count.reindex(age_order)
             age_count = age_count.dropna()
             age_count = age_count[age_count > 0]
-            plot_bar_with_labels(age_count, "Age Distribution", xlabel="Age Group", rotate_xticks=True)
+            plot_bar_with_labels(age_count, xlabel="Age Group", rotate_xticks=True)
         else:
             st.info("No age data available.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    st.subheader("Direction Trend by Date")
+    t1, t2 = st.columns(2)
 
-    if (
-        "scan_date" in filtered_df.columns and
-        "direction" in filtered_df.columns and
-        not filtered_df.empty
-    ):
-        trend_df = filtered_df.copy()
-        trend_df["scan_date_only"] = trend_df["scan_date"].dt.date
+    with t1:
+        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+        st.subheader("Direction Trended by Date")
+        if (
+            "scan_date" in filtered_df.columns and
+            "direction" in filtered_df.columns and
+            not filtered_df.empty
+        ):
+            direction_trend = (
+                filtered_df.groupby(["scan_date", "direction"])
+                .size()
+                .unstack(fill_value=0)
+                .sort_index()
+            )
+            plot_line_with_labels(direction_trend, xlabel="Date")
+        else:
+            st.info("No scan date or direction data available.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        direction_trend = (
-            trend_df.groupby(["scan_date_only", "direction"])
-            .size()
-            .unstack(fill_value=0)
-            .sort_index()
-        )
-
-        plot_line_with_labels(direction_trend, "Direction Trend by Date", xlabel="Date")
-    else:
-        st.info("No scan date or direction data available for trend analysis.")
-
-    st.markdown('</div>', unsafe_allow_html=True)
+    with t2:
+        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+        st.subheader("Gender Trended by Date")
+        if (
+            "scan_date" in filtered_df.columns and
+            "Gender" in filtered_df.columns and
+            not filtered_df.empty
+        ):
+            gender_trend = (
+                filtered_df.groupby(["scan_date", "Gender"])
+                .size()
+                .unstack(fill_value=0)
+                .sort_index()
+            )
+            plot_line_with_labels(gender_trend, xlabel="Date")
+        else:
+            st.info("No scan date or gender data available.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------------------
 # LEARNER TRACKER TABLE TAB
