@@ -164,6 +164,8 @@ def plot_bar_with_labels(series, xlabel="", ylabel="Count", rotate_xticks=False)
 
     if rotate_xticks:
         plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
+    else:
+        plt.setp(ax.get_xticklabels(), rotation=0, ha="center")
 
     max_val = max(series.values) if len(series.values) > 0 else 0
     offset = max(max_val * 0.01, 0.1)
@@ -277,8 +279,9 @@ if "Age" in filtered_df.columns:
 # ----------------------------
 # TABS
 # ----------------------------
-tab1, tab2, tab3 = st.tabs([
+tab1, tab2, tab3, tab4 = st.tabs([
     "Dashboard",
+    "Trend Charts",
     "Learner Tracker Table",
     "Registration Form Table"
 ])
@@ -365,11 +368,15 @@ with tab1:
             age_count = age_count.reindex(age_order)
             age_count = age_count.dropna()
             age_count = age_count[age_count > 0]
-            plot_bar_with_labels(age_count, xlabel="Age Group", rotate_xticks=True)
+            plot_bar_with_labels(age_count, xlabel="Age Group", rotate_xticks=False)
         else:
             st.info("No age data available.")
         st.markdown('</div>', unsafe_allow_html=True)
 
+# ----------------------------
+# TREND CHARTS TAB
+# ----------------------------
+with tab2:
     t1, t2 = st.columns(2)
 
     with t1:
@@ -413,13 +420,13 @@ with tab1:
 # ----------------------------
 # LEARNER TRACKER TABLE TAB
 # ----------------------------
-with tab2:
+with tab3:
     st.subheader("Learner Tracker Data")
     st.dataframe(filtered_df, use_container_width=True)
 
 # ----------------------------
 # REGISTRATION FORM TABLE TAB
 # ----------------------------
-with tab3:
+with tab4:
     st.subheader("Registration Form Data")
     st.dataframe(reg_df, use_container_width=True)
