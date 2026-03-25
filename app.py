@@ -18,21 +18,55 @@ st.set_page_config(
 # ----------------------------
 st.markdown("""
 <style>
-.kpi-box {
-    border: 1px solid #d9d9d9;
-    border-radius: 12px;
-    padding: 18px;
-    background-color: #ffffff;
-    text-align: center;
-}
-.kpi-title {
-    font-size: 14px;
-    color: #666;
-}
-.kpi-value {
-    font-size: 28px;
-    font-weight: bold;
-}
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .kpi-box {
+        border: 1px solid #d9d9d9;
+        border-radius: 12px;
+        padding: 18px;
+        background-color: #ffffff;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .kpi-title {
+        font-size: 14px;
+        color: #666666;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .kpi-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #111111;
+    }
+
+    .chart-box {
+        border: 1px solid #d9d9d9;
+        border-radius: 12px;
+        padding: 16px;
+        background-color: #ffffff;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+        margin-bottom: 18px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .scroll-chart {
+        overflow-x: auto;
+        overflow-y: hidden;
+        width: 100%;
+        padding-bottom: 8px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -63,11 +97,11 @@ def load_data():
     learner_ws = workbook.worksheet("Learner Tracker")
     reg_ws = workbook.worksheet("Registration Form")
 
-    learner_raw = learner_ws.get_all_values()
-    reg_raw = reg_ws.get_all_values()
+    learner_data = learner_ws.get_all_records()
+    reg_data = reg_ws.get_all_records()
 
-    learner_df = pd.DataFrame(learner_raw[1:], columns=learner_raw[0])
-    reg_df = pd.DataFrame(reg_raw[1:], columns=reg_raw[0])
+    learner_df = pd.DataFrame(learner_data)
+    reg_df = pd.DataFrame(reg_data)
 
     return learner_df, reg_df
 
@@ -75,103 +109,344 @@ def load_data():
 learner_df, reg_df = load_data()
 
 # ----------------------------
-# CLEAN COLUMNS (FIX)
-# ----------------------------
-learner_df.columns = learner_df.columns.str.strip().str.lower()
-reg_df.columns = reg_df.columns.str.strip().str.lower()
-
-# ----------------------------
-# VALIDATION
-# ----------------------------
-if "student_id" not in learner_df.columns:
-    st.error("student_id missing in Learner Tracker")
-    st.stop()
-
-if "student_id" not in reg_df.columns:
-    st.error("student_id missing in Registration Form")
-    st.stop()
-
-# ----------------------------
 # CLEAN DATA
 # ----------------------------
-learner_df = learner_df[learner_df["student_id"].astype(str).str.strip() != ""]
-reg_df = reg_df[reg_df["student_id"].astype(str).str.strip() != ""]
+learner_df.columns = [str(col).strip() for col in learner_df.columns]
+reg_df.columns = [str(col).strip() for col in reg_df.columns]
+
+if "scan_date" in learner_df.columns:
+    learner_df["scan_date"] = pd.to_datetime(
+        learner_df["scan_date"],
+        errors="coerce",
+        dayfirst=True
+    )
+
+if "time_stamp" in learner_df.columns:
+    learner_df["time_stamp"] = learner_df["time_stamp"].astype(str).str.strip()
+
+if "Age" in learner_df.columns:
+    learner_df["Age"] = learner_df["Age"].astype(str).str.strip()
+    learner_df.loc[learner_df["Age"].isin(["", "nan", "None"]), "Age"] = pd.NA
+
+age_order = [
+    "0 - 2 yrs",
+    "3 - 4 yrs",
+    "5 yrs",
+    "6 yrs",
+    "7 yrs",
+    "8 yrs",
+    "9 yrs",
+    "10 yrs",
+    "11 yrs",
+    "12 yrs",
+    "13 yrs",
+    "14 yrs",
+    "15 yrs",
+    "16 yrs",
+    "17 yrs",
+    "18 yrs"
+]
 
 # ----------------------------
-# KPI CALCULATIONS
+# CHART HELPERS
 # ----------------------------
-registered = reg_df["student_id"].nunique()
-attendance = learner_df["student_id"].nunique()
+def style_axes(ax):
+    ax.grid(axis="y", linestyle="--", alpha=0.3)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+    ax.spines["bottom"].set_visible(False)
 
-present_ids = set(learner_df["student_id"])
-all_ids = set(reg_df["student_id"])
+def plot_bar_with_labels(series, xlabel="", ylabel="Count", rotate_xticks=False):
+    if series.empty:
+        st.info("No data available.")
+        return
 
-absent_ids = all_ids - present_ids
-absent_df = reg_df[reg_df["student_id"].isin(absent_ids)]
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    bars = ax.bar(series.index.astype(str), series.values)
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    style_axes(ax)
+
+    if rotate_xticks:
+        plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
+    else:
+        plt.setp(ax.get_xticklabels(), rotation=0, ha="center")
+
+    max_val = max(series.values) if len(series.values) > 0 else 0
+    offset = max(max_val * 0.01, 0.1)
+
+    for bar in bars:
+        height = bar.get_height()
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            height + offset,
+            f"{int(height)}",
+            ha="center",
+            va="bottom",
+            fontsize=9
+        )
+
+    fig.tight_layout()
+    st.pyplot(fig)
+
+def plot_line_with_labels(df, xlabel="", ylabel="Count", scroll_key="chart"):
+    if df.empty:
+        st.info("No data available.")
+        return
+
+    width = max(8, len(df.index) * 0.9)
+
+    fig, ax = plt.subplots(figsize=(width, 4.5))
+
+    for col in df.columns:
+        ax.plot(df.index, df[col].values, marker="o", label=str(col))
+        for x, y in zip(df.index, df[col].values):
+            ax.text(x, y, str(int(y)), fontsize=8, ha="center", va="bottom")
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    style_axes(ax)
+    ax.legend()
+
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%d-%b-%y"))
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
+
+    fig.tight_layout()
+
+    chart_bytes_key = f"{scroll_key}_bytes"
+    import io
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", bbox_inches="tight", dpi=150)
+    buf.seek(0)
+
+    st.markdown('<div class="scroll-chart">', unsafe_allow_html=True)
+    st.image(buf.getvalue())
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    plt.close(fig)
 
 # ----------------------------
-# KPI DISPLAY
+# FILTERED COPY
 # ----------------------------
-st.markdown("### KPIs")
-
-k1, k2, k3 = st.columns(3)
-
-k1.markdown(f"<div class='kpi-box'><div class='kpi-title'>Registered</div><div class='kpi-value'>{registered}</div></div>", unsafe_allow_html=True)
-k2.markdown(f"<div class='kpi-box'><div class='kpi-title'>Attendance</div><div class='kpi-value'>{attendance}</div></div>", unsafe_allow_html=True)
-k3.markdown(f"<div class='kpi-box'><div class='kpi-title'>Absent Learners</div><div class='kpi-value'>{len(absent_ids)}</div></div>", unsafe_allow_html=True)
+filtered_df = learner_df.copy()
 
 # ----------------------------
-# CHARTS
+# SIDEBAR FILTERS
 # ----------------------------
-c1, c2 = st.columns(2)
+st.sidebar.header("Filters")
 
-# ABSENT PIE
-with c1:
-    st.subheader("Absent Learners by Gender")
+if "scan_date" in filtered_df.columns and filtered_df["scan_date"].notna().any():
+    min_date = filtered_df["scan_date"].min().date()
+    max_date = filtered_df["scan_date"].max().date()
 
-    if "gender" in absent_df.columns:
-        counts = absent_df["gender"].value_counts()
+    date_range = st.sidebar.date_input(
+        "Scan Date Range",
+        value=(min_date, max_date),
+        min_value=min_date,
+        max_value=max_date
+    )
 
-        fig, ax = plt.subplots()
-        ax.pie(counts, labels=counts.index, autopct='%1.0f%%')
-        ax.axis("equal")
+    if isinstance(date_range, tuple) and len(date_range) == 2:
+        start_date, end_date = date_range
+        filtered_df = filtered_df[
+            (filtered_df["scan_date"].dt.date >= start_date) &
+            (filtered_df["scan_date"].dt.date <= end_date)
+        ]
 
-        st.pyplot(fig)
+if "direction" in filtered_df.columns:
+    direction_options = sorted([x for x in filtered_df["direction"].dropna().unique()])
+    selected_direction = st.sidebar.multiselect(
+        "Direction",
+        options=direction_options,
+        default=direction_options
+    )
+    if selected_direction:
+        filtered_df = filtered_df[filtered_df["direction"].isin(selected_direction)]
 
-# PRESENT BAR
-with c2:
-    st.subheader("Present Learners by Gender")
+if "Grade" in filtered_df.columns:
+    grade_options = sorted([x for x in filtered_df["Grade"].dropna().unique()])
+    selected_grade = st.sidebar.multiselect(
+        "Grade",
+        options=grade_options,
+        default=grade_options
+    )
+    if selected_grade:
+        filtered_df = filtered_df[filtered_df["Grade"].isin(selected_grade)]
 
-    present_df = reg_df[reg_df["student_id"].isin(present_ids)]
+if "Gender" in filtered_df.columns:
+    gender_options = sorted([x for x in filtered_df["Gender"].dropna().unique()])
+    selected_gender = st.sidebar.multiselect(
+        "Gender",
+        options=gender_options,
+        default=gender_options
+    )
+    if selected_gender:
+        filtered_df = filtered_df[filtered_df["Gender"].isin(selected_gender)]
 
-    if "gender" in present_df.columns:
-        counts = present_df["gender"].value_counts()
-
-        fig, ax = plt.subplots()
-        bars = ax.bar(counts.index, counts.values)
-
-        for bar in bars:
-            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height(), str(int(bar.get_height())), ha="center")
-
-        st.pyplot(fig)
+if "Age" in filtered_df.columns:
+    available_ages = [x for x in age_order if x in filtered_df["Age"].dropna().unique()]
+    if available_ages:
+        selected_age_groups = st.sidebar.multiselect(
+            "Age Group",
+            options=available_ages,
+            default=available_ages
+        )
+        if selected_age_groups:
+            filtered_df = filtered_df[filtered_df["Age"].isin(selected_age_groups)]
 
 # ----------------------------
-# ABSENT TABLE
+# TABS
 # ----------------------------
-st.subheader("Absent Learners List")
-
-if not absent_df.empty:
-    st.dataframe(absent_df, use_container_width=True)
-else:
-    st.success("No absent learners 🎉")
+tab1, tab2, tab3, tab4 = st.tabs([
+    "Dashboard",
+    "Trend Charts",
+    "Learner Tracker Table",
+    "Registration Form Table"
+])
 
 # ----------------------------
-# TABS (UNCHANGED)
+# DASHBOARD TAB
 # ----------------------------
-tab1, tab2 = st.tabs(["Learner Tracker", "Registration"])
-
 with tab1:
-    st.dataframe(learner_df, use_container_width=True)
+    st.markdown('<div class="section-title">Summary KPIs</div>', unsafe_allow_html=True)
 
+    total_records = len(filtered_df)
+    total_registered = len(reg_df)
+
+    if "Age" in filtered_df.columns and filtered_df["Age"].notna().any():
+        most_common_age_group = filtered_df["Age"].mode().iloc[0]
+    else:
+        most_common_age_group = "N/A"
+
+    k1, k2, k3 = st.columns(3)
+
+    with k1:
+        st.markdown(f"""
+        <div class="kpi-box">
+            <div class="kpi-title">Total Records</div>
+            <div class="kpi-value">{total_records}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k2:
+        st.markdown(f"""
+        <div class="kpi-box">
+            <div class="kpi-title">Total Registered</div>
+            <div class="kpi-value">{total_registered}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k3:
+        st.markdown(f"""
+        <div class="kpi-box">
+            <div class="kpi-title">Most Common Age Group</div>
+            <div class="kpi-value">{most_common_age_group}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    c1, c2 = st.columns(2)
+
+    with c1:
+        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+        st.subheader("Learners by Grade")
+        if "Grade" in filtered_df.columns and not filtered_df.empty:
+            grade_count = filtered_df["Grade"].value_counts().sort_index()
+            plot_bar_with_labels(grade_count, xlabel="Grade")
+        else:
+            st.info("No Grade data available.")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with c2:
+        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+        st.subheader("Learners by Gender")
+        if "Gender" in filtered_df.columns and not filtered_df.empty:
+            gender_count = filtered_df["Gender"].value_counts()
+            plot_bar_with_labels(gender_count, xlabel="Gender")
+        else:
+            st.info("No Gender data available.")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    c3, c4 = st.columns(2)
+
+    with c3:
+        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+        st.subheader("Movement by Direction")
+        if "direction" in filtered_df.columns and not filtered_df.empty:
+            direction_count = filtered_df["direction"].value_counts()
+            plot_bar_with_labels(direction_count, xlabel="Direction")
+        else:
+            st.info("No direction data available.")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with c4:
+        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+        st.subheader("Age Distribution")
+        if "Age" in filtered_df.columns and filtered_df["Age"].notna().any():
+            age_count = filtered_df["Age"].value_counts()
+            age_count = age_count.reindex(age_order)
+            age_count = age_count.dropna()
+            age_count = age_count[age_count > 0]
+            plot_bar_with_labels(age_count, xlabel="Age Group", rotate_xticks=False)
+        else:
+            st.info("No age data available.")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# ----------------------------
+# TREND CHARTS TAB
+# ----------------------------
 with tab2:
+    t1, t2 = st.columns(2)
+
+    with t1:
+        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+        st.subheader("Direction Trended by Date")
+        if (
+            "scan_date" in filtered_df.columns and
+            "direction" in filtered_df.columns and
+            not filtered_df.empty
+        ):
+            direction_trend = (
+                filtered_df.groupby(["scan_date", "direction"])
+                .size()
+                .unstack(fill_value=0)
+                .sort_index()
+            )
+            plot_line_with_labels(direction_trend, xlabel="Date", scroll_key="direction_trend")
+        else:
+            st.info("No scan date or direction data available.")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with t2:
+        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+        st.subheader("Gender Trended by Date")
+        if (
+            "scan_date" in filtered_df.columns and
+            "Gender" in filtered_df.columns and
+            not filtered_df.empty
+        ):
+            gender_trend = (
+                filtered_df.groupby(["scan_date", "Gender"])
+                .size()
+                .unstack(fill_value=0)
+                .sort_index()
+            )
+            plot_line_with_labels(gender_trend, xlabel="Date", scroll_key="gender_trend")
+        else:
+            st.info("No scan date or gender data available.")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# ----------------------------
+# LEARNER TRACKER TABLE TAB
+# ----------------------------
+with tab3:
+    st.subheader("Learner Tracker Data")
+    st.dataframe(filtered_df, use_container_width=True)
+
+# ----------------------------
+# REGISTRATION FORM TABLE TAB
+# ----------------------------
+with tab4:
+    st.subheader("Registration Form Data")
     st.dataframe(reg_df, use_container_width=True)
