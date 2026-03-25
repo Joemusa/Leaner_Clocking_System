@@ -199,7 +199,7 @@ filtered_df = learner_df.copy()
 # ----------------------------
 st.sidebar.header("Filters")
 
-# ✅ DATE DROPDOWN FILTER
+# ✅ ONLY CHANGE → DATE DROPDOWN
 if "scan_date" in filtered_df.columns and filtered_df["scan_date"].notna().any():
     unique_dates = sorted(filtered_df["scan_date"].dropna().dt.date.unique())
     date_options = ["All"] + [d.strftime("%d-%b-%Y") for d in unique_dates]
@@ -212,21 +212,34 @@ if "scan_date" in filtered_df.columns and filtered_df["scan_date"].notna().any()
             filtered_df["scan_date"].dt.date == selected_date
         ]
 
-# Other filters unchanged
+# KEEP ALL OTHER FILTERS SAME
 if "direction" in filtered_df.columns:
-    options = filtered_df["direction"].dropna().unique()
-    selected = st.sidebar.multiselect("Direction", options, default=options)
-    filtered_df = filtered_df[filtered_df["direction"].isin(selected)]
+    direction_options = sorted(filtered_df["direction"].dropna().unique())
+    selected_direction = st.sidebar.multiselect(
+        "Direction", direction_options, default=direction_options
+    )
+    filtered_df = filtered_df[filtered_df["direction"].isin(selected_direction)]
 
 if "Grade" in filtered_df.columns:
-    options = filtered_df["Grade"].dropna().unique()
-    selected = st.sidebar.multiselect("Grade", options, default=options)
-    filtered_df = filtered_df[filtered_df["Grade"].isin(selected)]
+    grade_options = sorted(filtered_df["Grade"].dropna().unique())
+    selected_grade = st.sidebar.multiselect(
+        "Grade", grade_options, default=grade_options
+    )
+    filtered_df = filtered_df[filtered_df["Grade"].isin(selected_grade)]
 
 if "Gender" in filtered_df.columns:
-    options = filtered_df["Gender"].dropna().unique()
-    selected = st.sidebar.multiselect("Gender", options, default=options)
-    filtered_df = filtered_df[filtered_df["Gender"].isin(selected)]
+    gender_options = sorted(filtered_df["Gender"].dropna().unique())
+    selected_gender = st.sidebar.multiselect(
+        "Gender", gender_options, default=gender_options
+    )
+    filtered_df = filtered_df[filtered_df["Gender"].isin(selected_gender)]
+
+if "Age" in filtered_df.columns:
+    available_ages = [x for x in age_order if x in filtered_df["Age"].dropna().unique()]
+    selected_age_groups = st.sidebar.multiselect(
+        "Age Group", available_ages, default=available_ages
+    )
+    filtered_df = filtered_df[filtered_df["Age"].isin(selected_age_groups)]
 
 # ----------------------------
 # TABS
@@ -244,7 +257,20 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.markdown('<div class="section-title">Summary KPIs</div>', unsafe_allow_html=True)
 
-    st.write(f"Total Records: {len(filtered_df)}")
+    total_records = len(filtered_df)
+    total_registered = len(reg_df)
+
+    most_common_age_group = (
+        filtered_df["Age"].mode().iloc[0]
+        if "Age" in filtered_df.columns and filtered_df["Age"].notna().any()
+        else "N/A"
+    )
+
+    k1, k2, k3 = st.columns(3)
+
+    k1.markdown(f"<div class='kpi-box'><div class='kpi-title'>Total Records</div><div class='kpi-value'>{total_records}</div></div>", unsafe_allow_html=True)
+    k2.markdown(f"<div class='kpi-box'><div class='kpi-title'>Total Registered</div><div class='kpi-value'>{total_registered}</div></div>", unsafe_allow_html=True)
+    k3.markdown(f"<div class='kpi-box'><div class='kpi-title'>Most Common Age Group</div><div class='kpi-value'>{most_common_age_group}</div></div>", unsafe_allow_html=True)
 
     c1, c2 = st.columns(2)
 
@@ -257,6 +283,16 @@ with tab1:
         st.subheader("Learners by Gender")
         if "Gender" in filtered_df.columns:
             plot_bar_with_labels(filtered_df["Gender"].value_counts())
+
+# ----------------------------
+# TREND TAB
+# ----------------------------
+with tab2:
+    st.subheader("Direction Trend by Date")
+
+    if "scan_date" in filtered_df.columns and "direction" in filtered_df.columns:
+        trend = filtered_df.groupby(["scan_date", "direction"]).size().unstack(fill_value=0)
+        plot_line_with_labels(trend)
 
 # ----------------------------
 # TABLES
