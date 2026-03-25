@@ -34,7 +34,7 @@ def load_data():
     workbook = client.open_by_key("1bEZcEAxRAcrlo_Aa92a0u_hFCZsaBZ2DSCMIKNqyblM")
 
     learner_ws = workbook.worksheet("Learner Tracker")
-    reg_ws = workbook.worksheet("Registration Form")
+    reg_ws = workbook.worksheet("Registration")
 
     # SAFE LOAD
     learner_raw = learner_ws.get_all_values()
