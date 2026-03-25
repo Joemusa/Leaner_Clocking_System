@@ -11,7 +11,7 @@ st.set_page_config(page_title="Learner Attendance Dashboard", layout="wide")
 st.title("📊 Learner Attendance Dashboard")
 
 # ----------------------------
-# CONNECTION
+# GOOGLE SHEETS CONNECTION
 # ----------------------------
 scope = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -38,34 +38,41 @@ def load_data():
     learner_raw = learner_ws.get_all_values()
     reg_raw = reg_ws.get_all_values()
 
-    learner_df = pd.DataFrame(learner_raw[1:], columns=[c.strip() for c in learner_raw[0]])
-    reg_df = pd.DataFrame(reg_raw[1:], columns=[c.strip() for c in reg_raw[0]])
+    learner_df = pd.DataFrame(learner_raw[1:], columns=learner_raw[0])
+    reg_df = pd.DataFrame(reg_raw[1:], columns=reg_raw[0])
 
     return learner_df, reg_df
+
 
 learner_df, reg_df = load_data()
 
 # ----------------------------
-# CLEAN
+# CLEAN COLUMN NAMES (🔥 FIX)
 # ----------------------------
-learner_df.columns = [c.strip() for c in learner_df.columns]
-reg_df.columns = [c.strip() for c in reg_df.columns]
+learner_df.columns = learner_df.columns.str.strip().str.lower()
+reg_df.columns = reg_df.columns.str.strip().str.lower()
 
-# REQUIRED COLUMN
+# ----------------------------
+# VALIDATION
+# ----------------------------
 if "student_id" not in learner_df.columns:
     st.error("❌ 'student_id' missing in Learner Tracker")
+    st.write("Columns found:", learner_df.columns.tolist())
     st.stop()
 
 if "student_id" not in reg_df.columns:
     st.error("❌ 'student_id' missing in Registration Form")
+    st.write("Columns found:", reg_df.columns.tolist())
     st.stop()
 
-# Remove blanks
+# ----------------------------
+# CLEAN DATA
+# ----------------------------
 learner_df = learner_df[learner_df["student_id"].astype(str).str.strip() != ""]
 reg_df = reg_df[reg_df["student_id"].astype(str).str.strip() != ""]
 
 # ----------------------------
-# KPIs
+# KPI CALCULATIONS
 # ----------------------------
 registered = reg_df["student_id"].nunique()
 attendance = learner_df["student_id"].nunique()
@@ -90,12 +97,12 @@ k3.metric("Absent Learners", len(absent_ids))
 # ----------------------------
 col1, col2 = st.columns(2)
 
-# ABSENT PIE
+# ABSENT PIE CHART
 with col1:
     st.subheader("Absent Learners by Gender")
 
-    if "Gender" in absent_df.columns:
-        counts = absent_df["Gender"].value_counts()
+    if "gender" in absent_df.columns:
+        counts = absent_df["gender"].value_counts()
 
         fig, ax = plt.subplots()
         ax.pie(counts, labels=counts.index, autopct='%1.0f%%')
@@ -103,16 +110,16 @@ with col1:
 
         st.pyplot(fig)
     else:
-        st.warning("Gender column missing in Registration Form")
+        st.warning("⚠️ 'gender' column missing in Registration Form")
 
-# PRESENT BAR
+# PRESENT BAR CHART
 with col2:
     st.subheader("Present Learners by Gender")
 
     present_df = reg_df[reg_df["student_id"].isin(present_ids)]
 
-    if "Gender" in present_df.columns:
-        counts = present_df["Gender"].value_counts()
+    if "gender" in present_df.columns:
+        counts = present_df["gender"].value_counts()
 
         fig, ax = plt.subplots()
         bars = ax.bar(counts.index, counts.values)
@@ -129,7 +136,7 @@ with col2:
 
         st.pyplot(fig)
     else:
-        st.warning("Gender column missing")
+        st.warning("⚠️ 'gender' column missing")
 
 # ----------------------------
 # ABSENT TABLE
@@ -142,7 +149,7 @@ else:
     st.success("🎉 No absent learners today!")
 
 # ----------------------------
-# RAW DATA
+# RAW DATA TABS
 # ----------------------------
 tab1, tab2 = st.tabs(["Learner Tracker", "Registration"])
 
