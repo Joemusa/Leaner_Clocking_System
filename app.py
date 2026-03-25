@@ -238,21 +238,17 @@ filtered_df = learner_df.copy()
 st.sidebar.header("Filters")
 
 if "scan_date" in filtered_df.columns and filtered_df["scan_date"].notna().any():
-    min_date = filtered_df["scan_date"].min().date()
-    max_date = filtered_df["scan_date"].max().date()
 
-    date_range = st.sidebar.date_input(
-        "Scan Date Range",
-        value=(min_date, max_date),
-        min_value=min_date,
-        max_value=max_date
-    )
+    unique_dates = sorted(filtered_df["scan_date"].dropna().dt.date.unique())
 
-    if isinstance(date_range, tuple) and len(date_range) == 2:
-        start_date, end_date = date_range
+    date_options = ["All"] + [d.strftime("%d-%b-%Y") for d in unique_dates]
+
+    selected_date = st.sidebar.selectbox("Select Date", options=date_options)
+
+    if selected_date != "All":
+        selected_date = pd.to_datetime(selected_date).date()
         filtered_df = filtered_df[
-            (filtered_df["scan_date"].dt.date >= start_date) &
-            (filtered_df["scan_date"].dt.date <= end_date)
+            filtered_df["scan_date"].dt.date == selected_date
         ]
 
 if "direction" in filtered_df.columns:
