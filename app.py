@@ -5,14 +5,13 @@ from google.oauth2.service_account import Credentials
 import matplotlib.pyplot as plt
 
 # ----------------------------
-# PAGE CONFIG
+# CONFIG
 # ----------------------------
-st.set_page_config(page_title="Learner Clocking Dashboard", layout="wide")
-
+st.set_page_config(page_title="Learner Attendance Dashboard", layout="wide")
 st.title("📊 Learner Attendance Dashboard")
 
 # ----------------------------
-# GOOGLE SHEETS CONNECTION
+# CONNECTION
 # ----------------------------
 scope = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -27,16 +26,15 @@ creds = Credentials.from_service_account_info(
 client = gspread.authorize(creds)
 
 # ----------------------------
-# LOAD DATA (SAFE VERSION)
+# LOAD DATA (SAFE)
 # ----------------------------
 @st.cache_data(ttl=300)
 def load_data():
     workbook = client.open_by_key("1bEZcEAxRAcrlo_Aa92a0u_hFCZsaBZ2DSCMIKNqyblM")
 
     learner_ws = workbook.worksheet("Learner Tracker")
-    reg_ws = workbook.worksheet("Registration")
+    reg_ws = workbook.worksheet("Registration Form")
 
-    # SAFE LOAD
     learner_raw = learner_ws.get_all_values()
     reg_raw = reg_ws.get_all_values()
 
@@ -45,18 +43,21 @@ def load_data():
 
     return learner_df, reg_df
 
-
 learner_df, reg_df = load_data()
 
 # ----------------------------
-# CLEAN DATA
+# CLEAN
 # ----------------------------
 learner_df.columns = [c.strip() for c in learner_df.columns]
 reg_df.columns = [c.strip() for c in reg_df.columns]
 
-# Ensure student_id exists
-if "student_id" not in reg_df.columns or "student_id" not in learner_df.columns:
-    st.error("❌ 'student_id' column is required in BOTH sheets.")
+# REQUIRED COLUMN
+if "student_id" not in learner_df.columns:
+    st.error("❌ 'student_id' missing in Learner Tracker")
+    st.stop()
+
+if "student_id" not in reg_df.columns:
+    st.error("❌ 'student_id' missing in Registration Form")
     st.stop()
 
 # Remove blanks
@@ -64,7 +65,7 @@ learner_df = learner_df[learner_df["student_id"].astype(str).str.strip() != ""]
 reg_df = reg_df[reg_df["student_id"].astype(str).str.strip() != ""]
 
 # ----------------------------
-# KPI CALCULATIONS
+# KPIs
 # ----------------------------
 registered = reg_df["student_id"].nunique()
 attendance = learner_df["student_id"].nunique()
@@ -75,69 +76,65 @@ all_ids = set(reg_df["student_id"])
 absent_ids = all_ids - present_ids
 absent_df = reg_df[reg_df["student_id"].isin(absent_ids)]
 
-absent_count = len(absent_ids)
-
 # ----------------------------
 # KPI DISPLAY
 # ----------------------------
 k1, k2, k3 = st.columns(3)
 
-with k1:
-    st.metric("Registered", registered)
-
-with k2:
-    st.metric("Attendance", attendance)
-
-with k3:
-    st.metric("Absent Learners", absent_count)
+k1.metric("Registered", registered)
+k2.metric("Attendance", attendance)
+k3.metric("Absent Learners", len(absent_ids))
 
 # ----------------------------
 # CHARTS
 # ----------------------------
 col1, col2 = st.columns(2)
 
-# ----------------------------
-# ABSENT PIE CHART (Gender)
-# ----------------------------
+# ABSENT PIE
 with col1:
     st.subheader("Absent Learners by Gender")
 
     if "Gender" in absent_df.columns:
-        gender_counts = absent_df["Gender"].value_counts()
+        counts = absent_df["Gender"].value_counts()
 
         fig, ax = plt.subplots()
-        ax.pie(gender_counts, labels=gender_counts.index, autopct='%1.0f%%')
+        ax.pie(counts, labels=counts.index, autopct='%1.0f%%')
         ax.axis("equal")
 
         st.pyplot(fig)
     else:
-        st.info("Gender column missing in Registration Form")
+        st.warning("Gender column missing in Registration Form")
 
-# ----------------------------
-# PRESENT BAR CHART (Gender)
-# ----------------------------
+# PRESENT BAR
 with col2:
     st.subheader("Present Learners by Gender")
 
     present_df = reg_df[reg_df["student_id"].isin(present_ids)]
 
     if "Gender" in present_df.columns:
-        gender_counts = present_df["Gender"].value_counts()
+        counts = present_df["Gender"].value_counts()
 
         fig, ax = plt.subplots()
-        ax.bar(gender_counts.index, gender_counts.values)
+        bars = ax.bar(counts.index, counts.values)
 
-        for i, v in enumerate(gender_counts.values):
-            ax.text(i, v, str(v), ha="center")
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(
+                bar.get_x() + bar.get_width()/2,
+                height,
+                str(int(height)),
+                ha="center",
+                va="bottom"
+            )
 
         st.pyplot(fig)
     else:
-        st.info("Gender column missing")
+        st.warning("Gender column missing")
 
 # ----------------------------
 # ABSENT TABLE
 # ----------------------------
-st.subheader("Absent Learners List")
+st.subheader("📋 Absent Learners")
 
 if not absent_df.empty:
     st.dataframe(absent_df, use_container_width=True)
@@ -145,7 +142,7 @@ else:
     st.success("🎉 No absent learners today!")
 
 # ----------------------------
-# TABS
+# RAW DATA
 # ----------------------------
 tab1, tab2 = st.tabs(["Learner Tracker", "Registration"])
 
