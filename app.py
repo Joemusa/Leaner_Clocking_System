@@ -327,7 +327,7 @@ with tab1:
     else:
         absent_count = 0
 
-    k1, k2, k3 = st.columns(3)
+    k2, k1, k3 = st.columns(3)
 
     # KPI 1 (UNCHANGED)
     with k1:
