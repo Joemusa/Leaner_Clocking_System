@@ -241,14 +241,19 @@ if "scan_date" in filtered_df.columns and filtered_df["scan_date"].notna().any()
 
     unique_dates = sorted(filtered_df["scan_date"].dropna().dt.date.unique())
 
-    date_options = ["All"] + [d.strftime("%d-%b-%Y") for d in unique_dates]
+    date_options = [d.strftime("%d-%b-%Y") for d in unique_dates]
 
-    selected_date = st.sidebar.selectbox("Select Date", options=date_options)
+    selected_dates = st.sidebar.multiselect(
+        "Select Date",
+        options=date_options,
+        default=[date_options[-1]] if date_options else []
+    )
 
-    if selected_date != "All":
-        selected_date = pd.to_datetime(selected_date).date()
+    if selected_dates:
+        selected_dates = [pd.to_datetime(d).date() for d in selected_dates]
+
         filtered_df = filtered_df[
-            filtered_df["scan_date"].dt.date == selected_date
+            filtered_df["scan_date"].dt.date.isin(selected_dates)
         ]
 
 if "direction" in filtered_df.columns:
