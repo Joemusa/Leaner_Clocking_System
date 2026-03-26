@@ -257,14 +257,18 @@ if "scan_date" in filtered_df.columns and filtered_df["scan_date"].notna().any()
         ]
 
 if "direction" in filtered_df.columns:
-    direction_options = sorted([x for x in filtered_df["direction"].dropna().unique()])
+    direction_options = sorted(filtered_df["direction"].dropna().unique())
+
     selected_direction = st.sidebar.multiselect(
         "Direction",
         options=direction_options,
         default=direction_options
     )
-    if selected_direction:
-        filtered_df = filtered_df[filtered_df["direction"].isin(selected_direction)]
+
+    # Always apply filter safely
+    filtered_df = filtered_df[
+        filtered_df["direction"].isin(selected_direction)
+    ]
 
 if "Grade" in filtered_df.columns:
     grade_options = sorted([x for x in filtered_df["Grade"].dropna().unique()])
