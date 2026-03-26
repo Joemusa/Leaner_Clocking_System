@@ -311,13 +311,20 @@ with tab1:
     total_records = len(filtered_df)
     total_registered = len(reg_df)
 
-    if "Age" in filtered_df.columns and filtered_df["Age"].notna().any():
-        most_common_age_group = filtered_df["Age"].mode().iloc[0]
+    # ----------------------------
+    # ABSENT LEARNERS CALCULATION
+    # ----------------------------
+    if "student_id" in learner_df.columns and "student_id" in reg_df.columns:
+        learner_ids = set(learner_df["student_id"].astype(str).str.strip())
+        reg_ids = set(reg_df["student_id"].astype(str).str.strip())
+        absent_ids = reg_ids - learner_ids
+        absent_count = len(absent_ids)
     else:
-        most_common_age_group = "N/A"
+        absent_count = 0
 
     k1, k2, k3 = st.columns(3)
 
+    # KPI 1 (UNCHANGED)
     with k1:
         st.markdown(f"""
         <div class="kpi-box">
@@ -326,6 +333,7 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
 
+    # KPI 2 (UNCHANGED)
     with k2:
         st.markdown(f"""
         <div class="kpi-box">
@@ -334,11 +342,12 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
 
+    # ✅ KPI 3 (FIXED)
     with k3:
         st.markdown(f"""
         <div class="kpi-box">
-            <div class="kpi-title">Most Common Age Group</div>
-            <div class="kpi-value">{most_common_age_group}</div>
+            <div class="kpi-title">Absent Learners</div>
+            <div class="kpi-value">{absent_count}</div>
         </div>
         """, unsafe_allow_html=True)
 
