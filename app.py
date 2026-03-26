@@ -311,19 +311,24 @@ with tab1:
     total_records = len(filtered_df)
     total_registered = len(reg_df)
 
-    if "Age" in filtered_df.columns and filtered_df["Age"].notna().any():
-        most_common_age_group = filtered_df["Age"].mode().iloc[0]
-    else:
-        most_common_age_group = "N/A"
-
+  
     k1, k2, k3 = st.columns(3)
 
     with k1:
         st.markdown(f"""
-        <div class="kpi-box">
-            <div class="kpi-title">Total Records</div>
-            <div class="kpi-value">{total_records}</div>
-        </div>
+       # ----------------------------
+# ABSENT LEARNERS CALCULATION
+# ----------------------------
+if "student_id" in learner_df.columns and "student_id" in reg_df.columns:
+
+    learner_ids = set(learner_df["student_id"].astype(str).str.strip())
+    reg_ids = set(reg_df["student_id"].astype(str).str.strip())
+
+    absent_ids = reg_ids - learner_ids
+    absent_count = len(absent_ids)
+
+else:
+    absent_count = 0
         """, unsafe_allow_html=True)
 
     with k2:
