@@ -26,7 +26,7 @@ st.markdown("""
     border: 1px solid #333;
     border-radius: 12px;
     padding: 18px;
-    background-color: #1e1e1e;   /* DARK BACKGROUND */
+    background-color: #1e1e1e;
     box-shadow: 0 1px 6px rgba(0,0,0,0.3);
     text-align: center;
     margin-bottom: 10px;
@@ -34,7 +34,7 @@ st.markdown("""
 
 .kpi-title {
     font-size: 14px;
-    color: #bbbbbb;   /* LIGHT GREY */
+    color: #bbbbbb;
     margin-bottom: 8px;
     font-weight: 600;
 }
@@ -42,7 +42,7 @@ st.markdown("""
 .kpi-value {
     font-size: 28px;
     font-weight: 700;
-    color: #ffffff;   /* WHITE TEXT */
+    color: #ffffff;
 }
 </style>
 """, unsafe_allow_html=True)
