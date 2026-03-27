@@ -396,28 +396,14 @@ with tab1:
 
     with c4:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-
-
-
-        # ----------------------------
-# AGE DISTRIBUTION (FROM REGISTRATION FORM)
-# ----------------------------
-
-if st.button("Refresh Data"):
-    st.cache_data.clear()
-st.subheader("Age Distribution")
-
-if "Age" in reg_df.columns and reg_df["Age"].notna().any():
-
-    reg_df["Age"] = reg_df["Age"].astype(str).str.strip()
-
-    # Count only actual data
-    age_counts = reg_df["Age"].value_counts().sort_index()
-
-    st.bar_chart(age_counts)
-
-else:
-    st.info("No data available.")
+        st.subheader("Age Distribution")
+        if "Age" in reg_df.columns and reg_df["Age"].notna().any():
+            reg_df["Age"] = reg_df["Age"].astype(str).str.strip()
+            # Count only actual data
+            age_counts = reg_df["Age"].value_counts().sort_index()
+            st.bar_chart(age_counts)
+        else:
+            st.info("No data available.")
 
 # ----------------------------
 # TREND CHARTS TAB
