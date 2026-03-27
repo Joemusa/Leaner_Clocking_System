@@ -395,15 +395,37 @@ with tab1:
         st.markdown('</div>', unsafe_allow_html=True)
 
     with c4:
-        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-        st.subheader("Age Distribution")
-        if "Age" in reg_df.columns and reg_df["Age"].notna().any():
-            reg_df["Age"] = reg_df["Age"].astype(str).str.strip()
-            # Count only actual data
-            age_counts = reg_df["Age"].value_counts().sort_index()
-            st.bar_chart(age_counts)
-        else:
-            st.info("No data available.")
+    st.subheader("Age Distribution")
+
+    if "Age" in reg_df.columns and reg_df["Age"].notna().any():
+
+        df = reg_df.copy()
+        df["Age"] = df["Age"].astype(str).str.strip()
+
+        age_counts = df["Age"].value_counts().sort_index()
+
+        fig, ax = plt.subplots(figsize=FIG_SIZE)
+
+        bars = ax.bar(age_counts.index, age_counts.values, color=BAR_COLOR)
+
+        # Data labels
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2, height, str(int(height)),
+                    ha='center', va='bottom')
+
+        ax.set_xlabel("Age")
+        ax.set_ylabel("Count")
+
+        ax.grid(axis="y", linestyle="--", alpha=0.3)
+
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+
+        st.pyplot(fig)
+
+    else:
+        st.info("No data available.")
 
 # ----------------------------
 # TREND CHARTS TAB
