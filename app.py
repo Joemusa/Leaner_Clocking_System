@@ -396,16 +396,29 @@ with tab1:
 
     with c4:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-        st.subheader("Age Distribution")
-        if "Age" in filtered_df.columns and filtered_df["Age"].notna().any():
-            age_count = filtered_df["Age"].value_counts()
-            age_count = age_count.reindex(age_order)
-            age_count = age_count.dropna()
-            age_count = age_count[age_count > 0]
-            plot_bar_with_labels(age_count, xlabel="Age Group", rotate_xticks=False)
-        else:
-            st.info("No age data available.")
-        st.markdown('</div>', unsafe_allow_html=True)
+        # ----------------------------
+# AGE DISTRIBUTION (FROM REGISTRATION FORM)
+# ----------------------------
+st.subheader("Age Distribution")
+
+if "Age" in reg_df.columns and reg_df["Age"].notna().any():
+
+    # Clean the data
+    reg_df["Age"] = reg_df["Age"].astype(str).str.strip()
+
+    # Remove empty values
+    reg_df.loc[reg_df["Age"].isin(["", "nan", "None"]), "Age"] = pd.NA
+
+    # Count values
+    age_counts = reg_df["Age"].value_counts()
+
+    # Apply your custom order
+    age_counts = age_counts.reindex(age_order).dropna()
+
+    st.bar_chart(age_counts)
+
+else:
+    st.info("No data available.")
 
 # ----------------------------
 # TREND CHARTS TAB
