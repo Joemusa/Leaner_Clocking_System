@@ -20,29 +20,29 @@ st.markdown("""
 <style>
 .block-container { padding-top: 1rem; padding-bottom: 1rem; }
 
+st.markdown("""
+<style>
 .kpi-box {
-    border: 1px solid #d9d9d9;
+    border: 1px solid #333;
     border-radius: 12px;
     padding: 18px;
-    background-color: #ffffff;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    background-color: #1e1e1e;   /* DARK BACKGROUND */
+    box-shadow: 0 1px 6px rgba(0,0,0,0.3);
     text-align: center;
     margin-bottom: 10px;
 }
 
-.chart-box {
-    border: 1px solid #d9d9d9;
-    border-radius: 12px;
-    padding: 16px;
-    background-color: #ffffff;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-    margin-bottom: 18px;
+.kpi-title {
+    font-size: 14px;
+    color: #bbbbbb;   /* LIGHT GREY */
+    margin-bottom: 8px;
+    font-weight: 600;
 }
 
-.section-title {
-    font-size: 18px;
+.kpi-value {
+    font-size: 28px;
     font-weight: 700;
-    margin-bottom: 10px;
+    color: #ffffff;   /* WHITE TEXT */
 }
 </style>
 """, unsafe_allow_html=True)
