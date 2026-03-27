@@ -396,9 +396,15 @@ with tab1:
 
     with c4:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+
+
+
         # ----------------------------
 # AGE DISTRIBUTION (FROM REGISTRATION FORM)
 # ----------------------------
+
+if st.button("Refresh Data"):
+    st.cache_data.clear()
 st.subheader("Age Distribution")
 
 if "Age" in reg_df.columns and reg_df["Age"].notna().any():
