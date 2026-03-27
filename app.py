@@ -403,17 +403,10 @@ st.subheader("Age Distribution")
 
 if "Age" in reg_df.columns and reg_df["Age"].notna().any():
 
-    # Clean the data
     reg_df["Age"] = reg_df["Age"].astype(str).str.strip()
 
-    # Remove empty values
-    reg_df.loc[reg_df["Age"].isin(["", "nan", "None"]), "Age"] = pd.NA
-
-    # Count values
-    age_counts = reg_df["Age"].value_counts()
-
-    # Apply your custom order
-    age_counts = age_counts.reindex(age_order).dropna()
+    # Count only actual data
+    age_counts = reg_df["Age"].value_counts().sort_index()
 
     st.bar_chart(age_counts)
 
