@@ -237,7 +237,7 @@ with tab1:
     with k2:
         st.markdown(f"""
         <div class="kpi-box">
-            <div class="kpi-title">Total Registered</div>
+            <div class="kpi-title">Total Attendance</div>
             <div class="kpi-value">{total_registered}</div>
         </div>
         """, unsafe_allow_html=True)
