@@ -85,16 +85,17 @@ learner_df.columns = [str(col).strip() for col in learner_df.columns]
 reg_df.columns = [str(col).strip() for col in reg_df.columns]
 
 if "scan_date" in learner_df.columns:
-    learner_df["scan_date"] = pd.to_datetime(learner_df["scan_date"], errors="coerce", dayfirst=True)
+    learner_df["scan_date"] = pd.to_datetime(
+        learner_df["scan_date"], errors="coerce", dayfirst=True
+    )
 
 # ----------------------------
-# FILTERS (RESTORED ✅)
+# FILTERS
 # ----------------------------
 filtered_df = learner_df.copy()
 
 st.sidebar.header("Filters")
 
-# Date filter
 if "scan_date" in filtered_df.columns and filtered_df["scan_date"].notna().any():
     unique_dates = sorted(filtered_df["scan_date"].dropna().dt.date.unique())
     date_options = [d.strftime("%d-%b-%Y") for d in unique_dates]
@@ -107,27 +108,25 @@ if "scan_date" in filtered_df.columns and filtered_df["scan_date"].notna().any()
 
     if selected_dates:
         selected_dates = [pd.to_datetime(d).date() for d in selected_dates]
-        filtered_df = filtered_df[filtered_df["scan_date"].dt.date.isin(selected_dates)]
+        filtered_df = filtered_df[
+            filtered_df["scan_date"].dt.date.isin(selected_dates)
+        ]
 
-# Direction
 if "direction" in filtered_df.columns:
     options = sorted(filtered_df["direction"].dropna().unique())
     selected = st.sidebar.multiselect("Direction", options, default=options)
     filtered_df = filtered_df[filtered_df["direction"].isin(selected)]
 
-# Grade
 if "Grade" in filtered_df.columns:
     options = sorted(filtered_df["Grade"].dropna().unique())
     selected = st.sidebar.multiselect("Grade", options, default=options)
     filtered_df = filtered_df[filtered_df["Grade"].isin(selected)]
 
-# Gender
 if "Gender" in filtered_df.columns:
     options = sorted(filtered_df["Gender"].dropna().unique())
     selected = st.sidebar.multiselect("Gender", options, default=options)
     filtered_df = filtered_df[filtered_df["Gender"].isin(selected)]
 
-# Age
 if "Age" in filtered_df.columns:
     options = sorted(filtered_df["Age"].dropna().unique())
     selected = st.sidebar.multiselect("Age", options, default=options)
@@ -147,6 +146,10 @@ def style_axes(ax):
     ax.spines["bottom"].set_visible(False)
 
 def plot_bar(series, label):
+    if series.empty:
+        st.info("No data available.")
+        return
+
     fig, ax = plt.subplots(figsize=FIG_SIZE)
     bars = ax.bar(series.index.astype(str), series.values, color=BAR_COLOR)
 
@@ -155,44 +158,105 @@ def plot_bar(series, label):
     ax.set_ylabel("Count")
 
     for bar in bars:
-        ax.text(bar.get_x() + bar.get_width()/2, bar.get_height(), str(int(bar.get_height())),
-                ha='center', va='bottom')
+        ax.text(
+            bar.get_x() + bar.get_width()/2,
+            bar.get_height(),
+            str(int(bar.get_height())),
+            ha='center', va='bottom'
+        )
+
+    st.pyplot(fig)
+
+def plot_line(df):
+    if df.empty:
+        st.info("No data available.")
+        return
+
+    fig, ax = plt.subplots(figsize=(10,4.5))
+
+    for col in df.columns:
+        ax.plot(df.index, df[col], marker="o", label=col)
+
+    ax.legend()
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%d-%b-%y"))
+    plt.xticks(rotation=45)
+    style_axes(ax)
 
     st.pyplot(fig)
 
 # ----------------------------
-# DASHBOARD
+# TABS (RESTORED ✅)
 # ----------------------------
-col1, col2 = st.columns(2)
+tab1, tab2, tab3, tab4 = st.tabs([
+    "Dashboard",
+    "Trend Charts",
+    "Learner Tracker Table",
+    "Registration Form Table"
+])
 
-with col1:
-    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    st.subheader("Learners by Grade")
-    if "Grade" in filtered_df.columns:
-        plot_bar(filtered_df["Grade"].value_counts().sort_index(), "Grade")
-    st.markdown('</div>', unsafe_allow_html=True)
+# ----------------------------
+# DASHBOARD TAB
+# ----------------------------
+with tab1:
 
-with col2:
-    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    st.subheader("Learners by Gender")
-    if "Gender" in filtered_df.columns:
-        plot_bar(filtered_df["Gender"].value_counts(), "Gender")
-    st.markdown('</div>', unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
 
-col3, col4 = st.columns(2)
+    with col1:
+        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+        st.subheader("Learners by Grade")
+        if "Grade" in filtered_df.columns:
+            plot_bar(filtered_df["Grade"].value_counts().sort_index(), "Grade")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-with col3:
-    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    st.subheader("Movement by Direction")
-    if "direction" in filtered_df.columns:
-        plot_bar(filtered_df["direction"].value_counts(), "Direction")
-    st.markdown('</div>', unsafe_allow_html=True)
+    with col2:
+        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+        st.subheader("Learners by Gender")
+        if "Gender" in filtered_df.columns:
+            plot_bar(filtered_df["Gender"].value_counts(), "Gender")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-with col4:
-    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    st.subheader("Age Distribution")
-    if "Age" in reg_df.columns:
-        df = reg_df.copy()
-        df["Age"] = df["Age"].astype(str).str.strip()
-        plot_bar(df["Age"].value_counts().sort_index(), "Age")
-    st.markdown('</div>', unsafe_allow_html=True)
+    col3, col4 = st.columns(2)
+
+    with col3:
+        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+        st.subheader("Movement by Direction")
+        if "direction" in filtered_df.columns:
+            plot_bar(filtered_df["direction"].value_counts(), "Direction")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with col4:
+        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+        st.subheader("Age Distribution")
+        if "Age" in reg_df.columns:
+            df = reg_df.copy()
+            df["Age"] = df["Age"].astype(str).str.strip()
+            plot_bar(df["Age"].value_counts().sort_index(), "Age")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# ----------------------------
+# TREND TAB (UNCHANGED)
+# ----------------------------
+with tab2:
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("Direction Trend")
+        if "scan_date" in filtered_df.columns and "direction" in filtered_df.columns:
+            df = filtered_df.groupby(["scan_date","direction"]).size().unstack(fill_value=0)
+            plot_line(df)
+
+    with col2:
+        st.subheader("Gender Trend")
+        if "scan_date" in filtered_df.columns and "Gender" in filtered_df.columns:
+            df = filtered_df.groupby(["scan_date","Gender"]).size().unstack(fill_value=0)
+            plot_line(df)
+
+# ----------------------------
+# TABLES
+# ----------------------------
+with tab3:
+    st.dataframe(filtered_df, use_container_width=True)
+
+with tab4:
+    st.dataframe(reg_df, use_container_width=True)
