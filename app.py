@@ -18,28 +18,32 @@ st.set_page_config(
 # ----------------------------
 st.markdown("""
 <style>
-    .block-container { padding-top: 1rem; padding-bottom: 1rem; }
-    .kpi-box {
-        border: 1px solid #d9d9d9;
-        border-radius: 12px;
-        padding: 18px;
-        background-color: #ffffff;
-        box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-        text-align: center;
-        margin-bottom: 10px;
-    }
-    .kpi-title { font-size: 14px; color: #666666; margin-bottom: 8px; font-weight: 600; }
-    .kpi-value { font-size: 28px; font-weight: 700; color: #111111; }
-    .chart-box {
-        border: 1px solid #d9d9d9;
-        border-radius: 12px;
-        padding: 16px;
-        background-color: #ffffff;
-        box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-        margin-bottom: 18px;
-    }
-    .section-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
-    .scroll-chart { overflow-x: auto; width: 100%; padding-bottom: 8px; }
+.block-container { padding-top: 1rem; padding-bottom: 1rem; }
+
+.kpi-box {
+    border: 1px solid #d9d9d9;
+    border-radius: 12px;
+    padding: 18px;
+    background-color: #ffffff;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.chart-box {
+    border: 1px solid #d9d9d9;
+    border-radius: 12px;
+    padding: 16px;
+    background-color: #ffffff;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    margin-bottom: 18px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -66,11 +70,9 @@ client = gspread.authorize(creds)
 @st.cache_data(ttl=300)
 def load_data():
     workbook = client.open_by_key("1bEZcEAxRAcrlo_Aa92a0u_hFCZsaBZ2DSCMIKNqyblM")
-    learner_ws = workbook.worksheet("Learner Tracker")
-    reg_ws = workbook.worksheet("Registration Form")
 
-    learner_df = pd.DataFrame(learner_ws.get_all_records())
-    reg_df = pd.DataFrame(reg_ws.get_all_records())
+    learner_df = pd.DataFrame(workbook.worksheet("Learner Tracker").get_all_records())
+    reg_df = pd.DataFrame(workbook.worksheet("Registration Form").get_all_records())
 
     return learner_df, reg_df
 
@@ -83,11 +85,53 @@ learner_df.columns = [str(col).strip() for col in learner_df.columns]
 reg_df.columns = [str(col).strip() for col in reg_df.columns]
 
 if "scan_date" in learner_df.columns:
-    learner_df["scan_date"] = pd.to_datetime(
-        learner_df["scan_date"],
-        errors="coerce",
-        dayfirst=True
+    learner_df["scan_date"] = pd.to_datetime(learner_df["scan_date"], errors="coerce", dayfirst=True)
+
+# ----------------------------
+# FILTERS (RESTORED ✅)
+# ----------------------------
+filtered_df = learner_df.copy()
+
+st.sidebar.header("Filters")
+
+# Date filter
+if "scan_date" in filtered_df.columns and filtered_df["scan_date"].notna().any():
+    unique_dates = sorted(filtered_df["scan_date"].dropna().dt.date.unique())
+    date_options = [d.strftime("%d-%b-%Y") for d in unique_dates]
+
+    selected_dates = st.sidebar.multiselect(
+        "Select Date",
+        options=date_options,
+        default=[date_options[-1]] if date_options else []
     )
+
+    if selected_dates:
+        selected_dates = [pd.to_datetime(d).date() for d in selected_dates]
+        filtered_df = filtered_df[filtered_df["scan_date"].dt.date.isin(selected_dates)]
+
+# Direction
+if "direction" in filtered_df.columns:
+    options = sorted(filtered_df["direction"].dropna().unique())
+    selected = st.sidebar.multiselect("Direction", options, default=options)
+    filtered_df = filtered_df[filtered_df["direction"].isin(selected)]
+
+# Grade
+if "Grade" in filtered_df.columns:
+    options = sorted(filtered_df["Grade"].dropna().unique())
+    selected = st.sidebar.multiselect("Grade", options, default=options)
+    filtered_df = filtered_df[filtered_df["Grade"].isin(selected)]
+
+# Gender
+if "Gender" in filtered_df.columns:
+    options = sorted(filtered_df["Gender"].dropna().unique())
+    selected = st.sidebar.multiselect("Gender", options, default=options)
+    filtered_df = filtered_df[filtered_df["Gender"].isin(selected)]
+
+# Age
+if "Age" in filtered_df.columns:
+    options = sorted(filtered_df["Age"].dropna().unique())
+    selected = st.sidebar.multiselect("Age", options, default=options)
+    filtered_df = filtered_df[filtered_df["Age"].isin(selected)]
 
 # ----------------------------
 # CHART SETTINGS
@@ -102,90 +146,53 @@ def style_axes(ax):
     ax.spines["left"].set_visible(False)
     ax.spines["bottom"].set_visible(False)
 
-def plot_bar_with_labels(series, xlabel=""):
-    if series.empty:
-        st.info("No data available.")
-        return
-
+def plot_bar(series, label):
     fig, ax = plt.subplots(figsize=FIG_SIZE)
     bars = ax.bar(series.index.astype(str), series.values, color=BAR_COLOR)
 
     style_axes(ax)
-    ax.set_xlabel(xlabel)
+    ax.set_xlabel(label)
     ax.set_ylabel("Count")
 
     for bar in bars:
-        height = bar.get_height()
-        ax.text(
-            bar.get_x() + bar.get_width()/2,
-            height,
-            str(int(height)),
-            ha='center',
-            va='bottom'
-        )
+        ax.text(bar.get_x() + bar.get_width()/2, bar.get_height(), str(int(bar.get_height())),
+                ha='center', va='bottom')
 
-    fig.tight_layout()
     st.pyplot(fig)
 
 # ----------------------------
-# FILTERED COPY
+# DASHBOARD
 # ----------------------------
-filtered_df = learner_df.copy()
+col1, col2 = st.columns(2)
 
-# ----------------------------
-# TABS
-# ----------------------------
-tab1, tab2, tab3, tab4 = st.tabs([
-    "Dashboard",
-    "Trend Charts",
-    "Learner Tracker Table",
-    "Registration Form Table"
-])
+with col1:
+    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+    st.subheader("Learners by Grade")
+    if "Grade" in filtered_df.columns:
+        plot_bar(filtered_df["Grade"].value_counts().sort_index(), "Grade")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# ----------------------------
-# DASHBOARD TAB
-# ----------------------------
-with tab1:
+with col2:
+    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+    st.subheader("Learners by Gender")
+    if "Gender" in filtered_df.columns:
+        plot_bar(filtered_df["Gender"].value_counts(), "Gender")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    c1, c2 = st.columns(2)
+col3, col4 = st.columns(2)
 
-    with c1:
-        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-        st.subheader("Learners by Grade")
-        if "Grade" in filtered_df.columns:
-            plot_bar_with_labels(filtered_df["Grade"].value_counts().sort_index(), "Grade")
-        st.markdown('</div>', unsafe_allow_html=True)
+with col3:
+    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+    st.subheader("Movement by Direction")
+    if "direction" in filtered_df.columns:
+        plot_bar(filtered_df["direction"].value_counts(), "Direction")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    with c2:
-        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-        st.subheader("Learners by Gender")
-        if "Gender" in filtered_df.columns:
-            plot_bar_with_labels(filtered_df["Gender"].value_counts(), "Gender")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    c3, c4 = st.columns(2)
-
-    with c3:
-        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-        st.subheader("Movement by Direction")
-        if "direction" in filtered_df.columns:
-            plot_bar_with_labels(filtered_df["direction"].value_counts(), "Direction")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with c4:
-        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-        st.subheader("Age Distribution")
-        if "Age" in reg_df.columns:
-            df = reg_df.copy()
-            df["Age"] = df["Age"].astype(str).str.strip()
-            plot_bar_with_labels(df["Age"].value_counts().sort_index(), "Age")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-# ----------------------------
-# TABLES
-# ----------------------------
-with tab3:
-    st.dataframe(filtered_df, use_container_width=True)
-
-with tab4:
-    st.dataframe(reg_df, use_container_width=True)
+with col4:
+    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+    st.subheader("Age Distribution")
+    if "Age" in reg_df.columns:
+        df = reg_df.copy()
+        df["Age"] = df["Age"].astype(str).str.strip()
+        plot_bar(df["Age"].value_counts().sort_index(), "Age")
+    st.markdown('</div>', unsafe_allow_html=True)
