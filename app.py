@@ -14,14 +14,12 @@ st.set_page_config(
 )
 
 # ----------------------------
-# STYLING
+# STYLING (FIXED ONLY THIS PART)
 # ----------------------------
 st.markdown("""
 <style>
 .block-container { padding-top: 1rem; padding-bottom: 1rem; }
 
-st.markdown("""
-<style>
 .kpi-box {
     border: 1px solid #333;
     border-radius: 12px;
@@ -43,6 +41,20 @@ st.markdown("""
     font-size: 28px;
     font-weight: 700;
     color: #ffffff;
+}
+
+.chart-box {
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 16px;
+    background-color: #1e1e1e;
+    margin-bottom: 18px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 10px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -90,7 +102,7 @@ if "scan_date" in learner_df.columns:
     )
 
 # ----------------------------
-# FILTERS
+# FILTERS (UNCHANGED)
 # ----------------------------
 filtered_df = learner_df.copy()
 
@@ -133,7 +145,7 @@ if "Age" in filtered_df.columns:
     filtered_df = filtered_df[filtered_df["Age"].isin(selected)]
 
 # ----------------------------
-# CHART SETTINGS
+# CHART SETTINGS (UNCHANGED)
 # ----------------------------
 FIG_SIZE = (8, 4.5)
 BAR_COLOR = "#4e79a7"
@@ -185,7 +197,7 @@ def plot_line(df):
     st.pyplot(fig)
 
 # ----------------------------
-# TABS
+# TABS (UNCHANGED)
 # ----------------------------
 tab1, tab2, tab3, tab4 = st.tabs([
     "Dashboard",
@@ -195,11 +207,10 @@ tab1, tab2, tab3, tab4 = st.tabs([
 ])
 
 # ----------------------------
-# DASHBOARD TAB
+# DASHBOARD TAB (UNCHANGED)
 # ----------------------------
 with tab1:
 
-    # ✅ KPIs (RESTORED)
     st.markdown('<div class="section-title">Summary KPIs</div>', unsafe_allow_html=True)
 
     total_records = len(filtered_df)
@@ -239,7 +250,6 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
 
-    # ✅ Charts (ALL FIXED)
     col1, col2 = st.columns(2)
 
     with col1:
@@ -275,7 +285,7 @@ with tab1:
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------------------
-# TREND TAB
+# TREND TAB (UNCHANGED)
 # ----------------------------
 with tab2:
 
@@ -294,7 +304,7 @@ with tab2:
             plot_line(df)
 
 # ----------------------------
-# TABLES
+# TABLES (UNCHANGED)
 # ----------------------------
 with tab3:
     st.dataframe(filtered_df, use_container_width=True)
