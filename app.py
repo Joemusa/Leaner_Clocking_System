@@ -326,42 +326,45 @@ with tab1:
     col4, col5 = st.columns(2)
     
     with col4:
+        
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Attendance Trend (Male vs Female)")
-
-        # Clean column names (VERY IMPORTANT)
+    
+        # Clean column names
         filtered_df.columns = filtered_df.columns.str.strip().str.lower()
-
-        if "Scan Date" in filtered_df.columns and "Gender" in filtered_df.columns:
+    
+        if "scan_date" in filtered_df.columns and "gender" in filtered_df.columns:
+    
             df = filtered_df.copy()
+    
             # Convert date
-            df["date"] = pd.to_datetime(df["Scan Date"], errors="coerce")
-            # Clean gender values
-            df["Gender"] = df["Gender"].str.strip().str.capitalize()
-
-            # Remove invalid rows
-            df = df.dropna(subset=["Scan Date", "Gender"])
-
+            df["scan_date"] = pd.to_datetime(df["scan_date"], errors="coerce")
+    
+            # Clean gender
+            df["gender"] = df["gender"].str.strip().str.capitalize()
+    
+            # Drop bad rows
+            df = df.dropna(subset=["scan_date", "gender"])
+    
             # Group data
-            attendance_trend = df.groupby(["Scan Date", "Gender"]).size().reset_index(name="count")
-
-            # Create stacked area chart
+            attendance_trend = df.groupby(["scan_date", "gender"]).size().reset_index(name="count")
+    
             import plotly.express as px
-
+    
             fig = px.area(
-            attendance_trend,
-            x="date",
-            y="count",
-            color="gender",
-            title="Daily Attendance by Gender"
+                attendance_trend,
+                x="scan_date",
+                y="count",
+                color="gender",
+                title="Daily Attendance by Gender"
             )
-
+    
             st.plotly_chart(fig, use_container_width=True)
-
+    
         else:
             st.warning("Date or Gender column not found in data.")
-
-            st.markdown('</div>', unsafe_allow_html=True)
+    
+        st.markdown('</div>', unsafe_allow_html=True)
     
 
 # ----------------------------
