@@ -319,7 +319,7 @@ with tab1:
             plot_bar(df["Age"].value_counts().sort_index(), "Age")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    col1 = st.column(1)
+    col4, col5 = st.column(2)
     
     with col3:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
