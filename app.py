@@ -328,15 +328,15 @@ with tab1:
         # Clean column names (VERY IMPORTANT)
         filtered_df.columns = filtered_df.columns.str.strip().str.lower()
 
-        if "date" in filtered_df.columns and "gender" in filtered_df.columns:
+        if "Scan Date" in filtered_df.columns and "Gender" in filtered_df.columns:
             df = filtered_df.copy()
             # Convert date
-            df["date"] = pd.to_datetime(df["date"], errors="coerce")
+            df["date"] = pd.to_datetime(df["Scan Date"], errors="coerce")
             # Clean gender values
-            df["gender"] = df["gender"].str.strip().str.capitalize()
+            df["Gender"] = df["Gender"].str.strip().str.capitalize()
 
             # Remove invalid rows
-            df = df.dropna(subset=["date", "gender"])
+            df = df.dropna(subset=["Scan Date", "Gender"])
 
             # Group data
             attendance_trend = df.groupby(["Scan Date", "Gender"]).size().reset_index(name="count")
