@@ -294,7 +294,7 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
 
-    col1, col2, col4, col3 = st.columns(4)
+    col1, col2, col3 = st.columns(4)
 
     with col1:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
@@ -310,14 +310,9 @@ with tab1:
             plot_bar(filtered_df["Gender"].value_counts(), "Gender")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    with col3:
-        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-        st.subheader("Movement by Direction")
-        if "direction" in filtered_df.columns:
-            plot_bar(filtered_df["direction"].value_counts(), "Direction")
-        st.markdown('</div>', unsafe_allow_html=True)
+   
 
-    with col4:
+    with col3:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Age Distribution")
         if "Age" in reg_df.columns:
@@ -326,6 +321,14 @@ with tab1:
             plot_bar(df["Age"].value_counts().sort_index(), "Age")
         st.markdown('</div>', unsafe_allow_html=True)
 
+    col5 = st.column(1)
+    
+     with col3:
+        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+        st.subheader("Movement by Direction")
+        if "direction" in filtered_df.columns:
+            plot_bar(filtered_df["direction"].value_counts(), "Direction")
+        st.markdown('</div>', unsafe_allow_html=True)
     
 
 # ----------------------------
