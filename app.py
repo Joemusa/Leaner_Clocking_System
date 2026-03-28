@@ -322,11 +322,45 @@ with tab1:
     col4, col5 = st.columns(2)
     
     with col4:
-        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-        st.subheader("Movement by Direction")
-        if "direction" in filtered_df.columns:
-            plot_bar(filtered_df["direction"].value_counts(), "Direction")
-        st.markdown('</div>', unsafe_allow_html=True)
+       st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+        st.subheader("Attendance Trend (Male vs Female)")
+
+        # Clean column names (VERY IMPORTANT)
+        filtered_df.columns = filtered_df.columns.str.strip().str.lower()
+
+        if "date" in filtered_df.columns and "gender" in filtered_df.columns:
+
+        df = filtered_df.copy()
+
+        # Convert date
+        df["date"] = pd.to_datetime(df["date"], errors="coerce")
+
+        # Clean gender values
+        df["gender"] = df["gender"].str.strip().str.capitalize()
+
+        # Remove invalid rows
+        df = df.dropna(subset=["date", "gender"])
+
+        # Group data
+        attendance_trend = df.groupby(["date", "gender"]).size().reset_index(name="count")
+
+        # Create stacked area chart
+        import plotly.express as px
+
+        fig = px.area(
+            attendance_trend,
+            x="date",
+            y="count",
+            color="gender",
+            title="Daily Attendance by Gender"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+        else:
+            st.warning("Date or Gender column not found in data.")
+
+            st.markdown('</div>', unsafe_allow_html=True)
     
 
 # ----------------------------
