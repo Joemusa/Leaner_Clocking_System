@@ -310,8 +310,6 @@ with tab1:
             plot_bar(filtered_df["Gender"].value_counts(), "Gender")
         st.markdown('</div>', unsafe_allow_html=True)
 
-   
-
     with col3:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Age Distribution")
@@ -323,7 +321,7 @@ with tab1:
 
     col5 = st.column(1)
     
-     with col3:
+    with col3:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Movement by Direction")
         if "direction" in filtered_df.columns:
