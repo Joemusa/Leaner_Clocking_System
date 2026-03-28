@@ -265,7 +265,7 @@ with tab1:
     else:
         absent_count = 0
 
-    k2, k1, k3 = st.columns(3)
+    k2, k1, k3, k4 = st.columns(4)
 
     with k1:
         st.markdown(f"""
@@ -291,7 +291,7 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
 
-    col1, col2, col4, col3 = st.columns(4)
+    col1, col2, col4, col3, col5 = st.columns(5)
 
     with col1:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
@@ -322,6 +322,10 @@ with tab1:
             df["Age"] = df["Age"].astype(str).str.strip()
             plot_bar(df["Age"].value_counts().sort_index(), "Age")
         st.markdown('</div>', unsafe_allow_html=True)
+
+    with col5:
+        total_records = df['Name'].notna().sum()
+        st.metric("👨‍🎓 Total Attendance", total_records)
 
 # ----------------------------
 # TREND TAB (UNCHANGED)
