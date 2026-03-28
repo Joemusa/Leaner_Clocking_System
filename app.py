@@ -177,10 +177,14 @@ if "Gender" in filtered_df.columns:
     filtered_df = filtered_df[filtered_df["Gender"].isin(selected)]
 
 if "Age" in filtered_df.columns:
-    options = sorted(filtered_df["Age"].dropna().unique())
-    selected = st.sidebar.multiselect("Age", options, default=options)
-    filtered_df = filtered_df[filtered_df["Age"].isin(selected)]
+    # Clean Age column
+    filtered_df['Age'] = pd.to_numeric(filtered_df['Age'], errors='coerce')
 
+    options = sorted(filtered_df['Age'].dropna().unique())
+
+    selected = st.sidebar.multiselect("Age", options, default=options)
+
+    filtered_df = filtered_df[filtered_df['Age'].isin(selected)]
 if st.sidebar.button("Logout"):
     st.session_state["logged_in"] = False
     st.rerun()
