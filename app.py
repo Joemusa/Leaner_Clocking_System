@@ -296,11 +296,6 @@ with tab1:
 
         st.markdown(f"""
         <div class="kpi-box">
-            <div class="kpi-title">Absent Learners</div>
-            <div class="kpi-value">{absent_count}</div>
-        </div>
-
-        <div class="kpi-box">
             <div class="kpi-title">Total Attendance</div>
             <div class="kpi-value">{total_records}</div>
         </div>
