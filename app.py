@@ -339,7 +339,7 @@ with tab1:
             df = df.dropna(subset=["date", "gender"])
 
             # Group data
-            attendance_trend = df.groupby(["date", "gender"]).size().reset_index(name="count")
+            attendance_trend = df.groupby(["Scan Date", "Gender"]).size().reset_index(name="count")
 
             # Create stacked area chart
             import plotly.express as px
