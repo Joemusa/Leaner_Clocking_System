@@ -265,7 +265,7 @@ with tab1:
     else:
         absent_count = 0
 
-    k2, k1, k3, k4 = st.columns(4)
+    k2, k1, k3, k2 = st.columns(4)
 
     with k1:
         st.markdown(f"""
