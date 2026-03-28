@@ -265,17 +265,10 @@ with tab1:
     else:
         absent_count = 0
 
-    k3, k4, k1, k2 = st.columns(4)
+    k1, k2, k3 = st.columns(3)
 
+    
     with k1:
-        st.markdown(f"""
-        <div class="kpi-box">
-            <div class="kpi-title">Registered Learners</div>
-            <div class="kpi-value">{total_records}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with k2:
         st.markdown(f"""
         <div class="kpi-box">
             <div class="kpi-title">Total Attendance</div>
@@ -291,7 +284,7 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
 
-    with k4:
+    with k2:
         total_records = learner_df['leaner name'].notna().sum()
 
         st.markdown(f"""
