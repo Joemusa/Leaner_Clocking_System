@@ -54,7 +54,7 @@ def load():
 learner_df, reg_df = load()
 
 # -------------------------
-# CLEAN (IMPORTANT FIX)
+# CLEAN DATA
 # -------------------------
 learner_df.columns = learner_df.columns.str.strip().str.lower()
 reg_df.columns = reg_df.columns.str.strip().str.lower()
@@ -65,26 +65,69 @@ if "scan_date" in learner_df.columns:
 filtered_df = learner_df.copy()
 
 # -------------------------
-# FILTERS
+# FILTERS (RESTORED ✅)
 # -------------------------
 st.sidebar.header("Filters")
 
+# Date
 if "scan_date" in filtered_df.columns:
-    dates = filtered_df["scan_date"].dropna().dt.date.unique()
-    selected = st.sidebar.multiselect("Date", sorted(dates), default=dates)
+    dates = sorted(filtered_df["scan_date"].dropna().dt.date.unique())
+    selected = st.sidebar.multiselect("Date", dates, default=dates)
     filtered_df = filtered_df[filtered_df["scan_date"].dt.date.isin(selected)]
 
+# Direction
+if "direction" in filtered_df.columns:
+    opts = sorted(filtered_df["direction"].dropna().unique())
+    sel = st.sidebar.multiselect("Direction", opts, default=opts)
+    filtered_df = filtered_df[filtered_df["direction"].isin(sel)]
+
+# Grade
+if "grade" in filtered_df.columns:
+    opts = sorted(filtered_df["grade"].dropna().unique())
+    sel = st.sidebar.multiselect("Grade", opts, default=opts)
+    filtered_df = filtered_df[filtered_df["grade"].isin(sel)]
+
+# Gender
 if "gender" in filtered_df.columns:
-    opts = filtered_df["gender"].dropna().unique()
+    opts = sorted(filtered_df["gender"].dropna().unique())
     sel = st.sidebar.multiselect("Gender", opts, default=opts)
     filtered_df = filtered_df[filtered_df["gender"].isin(sel)]
+
+# Age (FIXED)
+if "age" in filtered_df.columns:
+    filtered_df["age"] = pd.to_numeric(filtered_df["age"], errors="coerce")
+    opts = sorted(filtered_df["age"].dropna().unique())
+    sel = st.sidebar.multiselect("Age", opts, default=opts)
+    filtered_df = filtered_df[filtered_df["age"].isin(sel)]
 
 if st.sidebar.button("Logout"):
     st.session_state["logged_in"] = False
     st.rerun()
 
 # -------------------------
-# TABS (RESTORED ✅)
+# BAR CHART WITH LABELS (RESTORED ✅)
+# -------------------------
+def plot_bar(series, title):
+    if series.empty:
+        st.info("No data available")
+        return
+
+    fig, ax = plt.subplots()
+    bars = ax.bar(series.index.astype(str), series.values)
+
+    for bar in bars:
+        ax.text(
+            bar.get_x() + bar.get_width()/2,
+            bar.get_height(),
+            str(int(bar.get_height())),
+            ha='center', va='bottom'
+        )
+
+    ax.set_title(title)
+    st.pyplot(fig)
+
+# -------------------------
+# TABS
 # -------------------------
 tab1, tab2, tab3, tab4 = st.tabs([
     "Dashboard",
@@ -94,7 +137,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
 ])
 
 # =========================
-# TAB 1: DASHBOARD
+# DASHBOARD
 # =========================
 with tab1:
 
@@ -118,49 +161,50 @@ with tab1:
     with c1:
         st.subheader("Learners by Grade")
         if "grade" in filtered_df.columns:
-            st.bar_chart(filtered_df["grade"].value_counts())
+            plot_bar(filtered_df["grade"].value_counts().sort_index(), "Grade")
 
     with c2:
         st.subheader("Learners by Gender")
         if "gender" in filtered_df.columns:
-            st.bar_chart(filtered_df["gender"].value_counts())
+            plot_bar(filtered_df["gender"].value_counts(), "Gender")
 
     with c3:
         st.subheader("Age Distribution")
         if "age" in reg_df.columns:
-            st.bar_chart(reg_df["age"].value_counts())
+            plot_bar(reg_df["age"].value_counts().sort_index(), "Age")
 
-    # 🔥 Attendance Trend FIXED
+    # -------------------------
+    # ATTENDANCE TREND
+    # -------------------------
     st.subheader("Attendance Trend (Male vs Female)")
 
     if "scan_date" in filtered_df.columns and "gender" in filtered_df.columns:
+
         df = filtered_df.copy()
         df["gender"] = df["gender"].str.capitalize()
+        df = df.dropna(subset=["scan_date", "gender"])
 
         trend = df.groupby(["scan_date", "gender"]).size().reset_index(name="count")
 
         fig = px.area(trend, x="scan_date", y="count", color="gender")
         st.plotly_chart(fig, use_container_width=True)
+
     else:
         st.warning("Date or Gender missing")
 
 # =========================
-# TAB 2: TREND CHARTS
+# TREND TAB
 # =========================
 with tab2:
-
     if "scan_date" in filtered_df.columns and "gender" in filtered_df.columns:
         df = filtered_df.groupby(["scan_date", "gender"]).size().unstack(fill_value=0)
         st.line_chart(df)
 
 # =========================
-# TAB 3: LEARNER TABLE
+# TABLES
 # =========================
 with tab3:
     st.dataframe(filtered_df)
 
-# =========================
-# TAB 4: REGISTRATION
-# =========================
 with tab4:
     st.dataframe(reg_df)
