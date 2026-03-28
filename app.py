@@ -5,6 +5,34 @@ from google.oauth2.service_account import Credentials
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
+
+import streamlit as st
+
+# -------------------------
+# LOGIN CONFIGURATION
+# -------------------------
+USER_CREDENTIALS = {
+    "admin": "1234",   # change this!
+    "school": "abcd"   # change this!
+}
+
+# -------------------------
+# LOGIN FUNCTION
+# -------------------------
+def login():
+    st.title("🔐 Scholar System Login")
+
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        if username in USER_CREDENTIALS and USER_CREDENTIALS[username] == password:
+            st.session_state["logged_in"] = True
+            st.success("Login successful ✅")
+            st.rerun()
+        else:
+            st.error("Invalid username or password ❌")
+
 # ----------------------------
 # PAGE CONFIG
 # ----------------------------
