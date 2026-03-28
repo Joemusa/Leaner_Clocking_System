@@ -329,33 +329,30 @@ with tab1:
         filtered_df.columns = filtered_df.columns.str.strip().str.lower()
 
         if "date" in filtered_df.columns and "gender" in filtered_df.columns:
+            df = filtered_df.copy()
+            # Convert date
+            df["date"] = pd.to_datetime(df["date"], errors="coerce")
+            # Clean gender values
+            df["gender"] = df["gender"].str.strip().str.capitalize()
 
-        df = filtered_df.copy()
+            # Remove invalid rows
+            df = df.dropna(subset=["date", "gender"])
 
-        # Convert date
-        df["date"] = pd.to_datetime(df["date"], errors="coerce")
+            # Group data
+            attendance_trend = df.groupby(["date", "gender"]).size().reset_index(name="count")
 
-        # Clean gender values
-        df["gender"] = df["gender"].str.strip().str.capitalize()
+            # Create stacked area chart
+            import plotly.express as px
 
-        # Remove invalid rows
-        df = df.dropna(subset=["date", "gender"])
-
-        # Group data
-        attendance_trend = df.groupby(["date", "gender"]).size().reset_index(name="count")
-
-        # Create stacked area chart
-        import plotly.express as px
-
-        fig = px.area(
+            fig = px.area(
             attendance_trend,
             x="date",
             y="count",
             color="gender",
             title="Daily Attendance by Gender"
-        )
+            )
 
-        st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True)
 
         else:
             st.warning("Date or Gender column not found in data.")
