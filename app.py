@@ -321,7 +321,7 @@ with tab1:
 
     col4, col5 = st.column(2)
     
-    with col3:
+    with col4:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Movement by Direction")
         if "direction" in filtered_df.columns:
