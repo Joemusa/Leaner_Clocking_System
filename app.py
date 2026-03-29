@@ -241,7 +241,13 @@ def plot_line(df):
     style_axes(ax)
 
     st.pyplot(fig)
+# -----------------------------
+# SIDEBAR DATE FILTER
+# -----------------------------
+selected_date = st.sidebar.date_input("Select Date")
 
+# Ensure datetime format
+selected_date = pd.to_datetime(selected_date).normalize()
 # ----------------------------
 # TABS (UNCHANGED)
 # ----------------------------
