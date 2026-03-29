@@ -471,47 +471,7 @@ with tab2:
     # LOAD DATA
     # -----------------------------
     
-    # -----------------------------
-    # GENDER FILTER
-    # -----------------------------
-    genders = ["All"] + sorted(df["gender"].dropna().unique().tolist())
-    
-    selected_gender_filter = st.selectbox(
-        "Filter by Gender",
-        genders
-    )
-    
-    df = learner_df.copy()
-    
-    df.columns = df.columns.str.strip().str.lower()
-    
-    # ✅ FIX COLUMN NAME HERE
-    if "scan_date" in df.columns and "gender" in df.columns:
-    
-        # ✅ USE CORRECT COLUMN
-        df["scan_date"] = pd.to_datetime(df["scan_date"], errors="coerce")
-        df["date"] = df["scan_date"].dt.date
-        df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
-    
-        df = df.dropna(subset=["date", "gender"])
-    
-        # -----------------------------
-        # AGGREGATE
-        # -----------------------------
-        attendance = (
-            df.groupby(["date", "gender"])
-            .size()
-            .reset_index(name="count")
-        )
-    
-        # ✅ CRITICAL FIX FOR PLOTLY
-        attendance["date"] = pd.to_datetime(attendance["date"])
-    
-        # -----------------------------
-        # SESSION STATE
-        # -----------------------------
-        if "selected_date" not in st.session_state:
-            st.session_state.selected_date = None
+   
     
         # -----------------------------
         # REFRESH BUTTON
@@ -572,7 +532,47 @@ with tab2:
     # -----------------------------
     # TABLE
     # -----------------------------
-
+     # -----------------------------
+    # GENDER FILTER
+    # -----------------------------
+    genders = ["All"] + sorted(df["gender"].dropna().unique().tolist())
+    
+    selected_gender_filter = st.selectbox(
+        "Filter by Gender",
+        genders
+    )
+    
+    df = learner_df.copy()
+    
+    df.columns = df.columns.str.strip().str.lower()
+    
+    # ✅ FIX COLUMN NAME HERE
+    if "scan_date" in df.columns and "gender" in df.columns:
+    
+        # ✅ USE CORRECT COLUMN
+        df["scan_date"] = pd.to_datetime(df["scan_date"], errors="coerce")
+        df["date"] = df["scan_date"].dt.date
+        df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
+    
+        df = df.dropna(subset=["date", "gender"])
+    
+        # -----------------------------
+        # AGGREGATE
+        # -----------------------------
+        attendance = (
+            df.groupby(["date", "gender"])
+            .size()
+            .reset_index(name="count")
+        )
+    
+        # ✅ CRITICAL FIX FOR PLOTLY
+        attendance["date"] = pd.to_datetime(attendance["date"])
+    
+        # -----------------------------
+        # SESSION STATE
+        # -----------------------------
+        if "selected_date" not in st.session_state:
+            st.session_state.selected_date = None
     # -----------------------------
     # GENDER FILTER
     # -----------------------------
