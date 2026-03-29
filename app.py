@@ -355,7 +355,7 @@ with tab1:
             import matplotlib.pyplot as plt
     
             # ✅ SAME HEIGHT AS OTHER CHARTS
-            fig, ax = plt.subplots(figsize=(6,4))
+            fig, ax = plt.subplots(figsize=(5,4))
     
             pivot.plot(kind="bar", stacked=True, ax=ax)
     
