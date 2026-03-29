@@ -304,7 +304,7 @@ with tab1:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Learners by Grade")
         if "Grade" in reg_df.columns:
-            df.copy()
+            df = reg_df.copy()
             df["Grade"] = df["Grade"].astype(str).str.strip()
             plot_bar(df["Grade"].value_counts().sort_index(), "Grade")
         st.markdown('</div>', unsafe_allow_html=True)
