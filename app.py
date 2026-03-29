@@ -21,8 +21,7 @@ def login():
     st.title("🔐 Scholar System Login")
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
-
-```
+    
 if st.button("Login"):
     if username in USER_CREDENTIALS and USER_CREDENTIALS[username] == password:
         st.session_state["logged_in"] = True
@@ -30,7 +29,6 @@ if st.button("Login"):
         st.rerun()
     else:
         st.error("Invalid username or password ❌")
-```
 
 if "logged_in" not in st.session_state:
 st.session_state["logged_in"] = False
