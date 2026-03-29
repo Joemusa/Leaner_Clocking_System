@@ -245,10 +245,9 @@ def plot_line(df):
 # ----------------------------
 # TABS (UNCHANGED)
 # ----------------------------
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3 = st.tabs([
     "Dashboard",
-    "Trend Charts",
-    "Learner Tracker Table",
+    "Attendance",
     "Registration Form Table"
 ])
 
@@ -624,8 +623,8 @@ with tab2:
 # ----------------------------
 # TABLES (UNCHANGED)
 # ----------------------------
-with tab3:
-    st.dataframe(filtered_df, use_container_width=True)
+#with tab3:
+    #st.dataframe(filtered_df, use_container_width=True)
 
-with tab4:
+with tab3:
     st.dataframe(reg_df, use_container_width=True)
