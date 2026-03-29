@@ -470,6 +470,17 @@ with tab2:
     # -----------------------------
     # LOAD DATA
     # -----------------------------
+    
+    # -----------------------------
+    # GENDER FILTER
+    # -----------------------------
+    genders = ["All"] + sorted(df["gender"].dropna().unique().tolist())
+    
+    selected_gender_filter = st.selectbox(
+        "Filter by Gender",
+        genders
+    )
+    
     df = learner_df.copy()
     
     df.columns = df.columns.str.strip().str.lower()
