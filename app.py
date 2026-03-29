@@ -429,7 +429,7 @@ with tab1:
             import matplotlib.pyplot as plt
     
             plt.rcParams.update({
-                "font.size": 8
+                "font.size": 12
             })
     
             fig, ax = plt.subplots(figsize=(12, 4))
