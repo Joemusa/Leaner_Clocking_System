@@ -540,7 +540,7 @@ with tab2:
 
     st.dataframe(filtered_df, use_container_width=True)
 
-else:
+    else:
     st.warning("Required columns not found.")
 
 # ----------------------------
