@@ -510,11 +510,8 @@ with tab2:
     # HANDLE CLICK
     # -----------------------------
     if selected and selected.get("selection"):
-    
         points = selected["selection"]["points"]
-    
         if len(points) > 0:
-    
             clicked_date = pd.to_datetime(points[0]["x"]).normalize()
     
             # ✅ SAFER WAY TO GET GENDER
