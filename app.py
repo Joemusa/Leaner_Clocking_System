@@ -565,34 +565,34 @@ with tab2:
     # -----------------------------
     # GENDER FILTER
     # -----------------------------
-    genders = ["All"] + sorted(df["gender"].dropna().unique().tolist())
+    st.subheader("Learner Tracker Data")
+
+    filtered_df = df.copy()
     
-    selected_gender_filter = st.selectbox(
-        "Filter by Gender",
-        genders
-    )
-        st.subheader("Learner Tracker Data")
+    # ✅ Apply dropdown gender filter
+    if selected_gender_filter != "All":
+        filtered_df = filtered_df[
+            filtered_df["gender"].str.lower() == selected_gender_filter.lower()
+        ]
     
+    # ✅ Apply click filter (date + gender)
     if st.session_state.get("selected_date"):
     
         selected_date = pd.to_datetime(st.session_state.selected_date).normalize()
     
-        filtered_df = df[
-            df["scan_date"].dt.normalize() == selected_date
+        filtered_df = filtered_df[
+            filtered_df["scan_date"].dt.normalize() == selected_date
         ]
     
-        # ✅ APPLY GENDER FILTER (THIS WAS MISSING)
+        # If chart gender was clicked, override dropdown
         if st.session_state.get("selected_gender"):
             filtered_df = filtered_df[
                 filtered_df["gender"].str.lower() == st.session_state.selected_gender.lower()
             ]
     
         st.info(
-            f"Filtered for date: {selected_date.date()} | Gender: {st.session_state.get('selected_gender')}"
+            f"Filtered for: {selected_date.date()} | Gender: {st.session_state.get('selected_gender', selected_gender_filter)}"
         )
-    
-    else:
-        filtered_df = df
     
     st.dataframe(
         filtered_df[
