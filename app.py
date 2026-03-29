@@ -538,17 +538,21 @@ with tab2:
             # -----------------------------
             # HANDLE CLICK
             # -----------------------------
-            if selected and selected.get("selection"):
-
-                points = selected["selection"]["points"]
-
-                if len(points) > 0:
-                    clicked_date = points[0]["x"]
-
-                    # ✅ FORCE SAME FORMAT AS scan_date
-                    clicked_date = pd.to_datetime(clicked_date).normalize()
-
-                    st.session_state.selected_date = clicked_date
+        
+        if selected and selected.get("selection"):
+        
+            points = selected["selection"]["points"]
+        
+            if len(points) > 0:
+        
+                clicked_date = pd.to_datetime(points[0]["x"]).normalize()
+        
+                # ✅ GET GENDER FROM CLICK
+                clicked_gender = points[0]["legendgroup"]
+        
+                # Save both
+                st.session_state.selected_date = clicked_date
+                st.session_state.selected_gender = clicked_gender
     
         # -----------------------------
         # TABLE
