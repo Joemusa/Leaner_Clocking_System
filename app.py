@@ -394,11 +394,11 @@ with tab1:
     st.markdown('</div>', unsafe_allow_html=True)
 
      with col5:
-            st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-            st.subheader("Yearly Attendance (Male vs Female)")
+         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+         st.subheader("Yearly Attendance (Male vs Female)")
         
-            # Clean column names
-            reg_df.columns = reg_df.columns.str.strip().str.lower()
+         # Clean column names
+         reg_df.columns = reg_df.columns.str.strip().str.lower()
         
             if "timestamp" in reg_df.columns and "gender" in reg_df.columns:
         
