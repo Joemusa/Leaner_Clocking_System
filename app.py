@@ -800,23 +800,31 @@ if len(absent_names) > 0:
         if len(absent_dates) > 0:
 
             import matplotlib.pyplot as plt
-
-            fig, ax = plt.subplots(figsize=(12, 4))
-
-            # Lollipop chart
+            
+            fig, ax = plt.subplots(figsize=(8, 4))
+            
+            # Lollipop
             ax.vlines(absent_dates, ymin=0, ymax=1)
             ax.scatter(absent_dates, [1]*len(absent_dates), s=100)
-
-            # Formatting
+            
+            # -----------------------------
+            # REMOVE BORDER (KEY FIX)
+            # -----------------------------
+            for spine in ax.spines.values():
+                spine.set_visible(False)
+            
+            # Optional: remove grid
+            ax.grid(False)
+            
+            # Clean formatting
             ax.set_ylim(0, 1.2)
             ax.set_yticks([])
             ax.set_title(f"Absence Days - {selected_name}")
             ax.set_xlabel("Date")
-
+            
             plt.xticks(rotation=45)
-
+            
             st.pyplot(fig)
-
         else:
             st.success("No absences for this learner 🎉")
 
