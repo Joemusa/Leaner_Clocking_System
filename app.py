@@ -396,57 +396,71 @@ with tab1:
     with col5:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Total Registered by Race")
-        
+    
         # Clean column names
         reg_df.columns = reg_df.columns.str.strip().str.lower()
-        if "timestamp" in reg_df.columns and "gender" in reg_df.columns:
+    
+        if "timestamp" in reg_df.columns and "race" in reg_df.columns:
             df = reg_df.copy()
+    
             df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
             df["year"] = df["timestamp"].dt.year
             df["race"] = df["race"].astype(str).str.strip().str.capitalize()
+    
             df = df.dropna(subset=["year", "race"])
-            pivot = df.groupby(["year", "race"]).size().unstack(fill_value=0).sort_index()
-            # ✅ FIX YEAR FORMAT HERE
+    
+            pivot = (
+                df.groupby(["year", "race"])
+                .size()
+                .unstack(fill_value=0)
+                .sort_index()
+            )
+    
+            # ✅ FIX YEAR FORMAT
             pivot.index = pivot.index.astype(int).astype(str)
+    
             import matplotlib.pyplot as plt
+    
             plt.rcParams.update({
                 "font.size": 8
-                })
-                
-            fig, ax = plt.subplots(figsize=(12,4))    
-                
+            })
+    
+            fig, ax = plt.subplots(figsize=(12, 4))
+    
             pivot.plot(kind="bar", stacked=True, ax=ax)
-                
-            # ✅ FORCE CLEAN X-AXIS LABELS
+    
+            # ✅ CLEAN X-AXIS
             ax.set_xticklabels(pivot.index, rotation=0)
-            # ✅ REMOVE BORDER (spines)
+    
+            # ✅ REMOVE BORDER
             for spine in ax.spines.values():
                 spine.set_visible(False)
-        
-                # ✅ LABELS INSIDE BARS
+    
+            # ✅ LABELS INSIDE BARS
             for container in ax.containers:
                 ax.bar_label(container, label_type='center', fontsize=7)
-        
-                # ✅ TOTAL LABELS ON TOP
+    
+            # ✅ TOTAL LABELS ON TOP
             for i, year in enumerate(pivot.index):
                 total = pivot.loc[year].sum()
                 ax.text(i, total, str(int(total)), ha='center', va='bottom', fontsize=8)
-        
-                # Clean axes
-                ax.set_title("")
-                ax.set_xlabel("")
-                ax.set_ylabel("")
-        
-                # White background
-                fig.patch.set_facecolor("white")
-                ax.set_facecolor("white")
-        
-                st.pyplot(fig)
-        
-            else:
-                st.warning("Timestamp or Gender column not found.")
     
-            st.markdown('</div>', unsafe_allow_html=True)
+            # ✅ CLEAN AXES
+            ax.set_title("")
+            ax.set_xlabel("")
+            ax.set_ylabel("")
+    
+            # ✅ WHITE BACKGROUND
+            fig.patch.set_facecolor("white")
+            ax.set_facecolor("white")
+    
+            # ✅ SHOW ONLY ONCE
+            st.pyplot(fig)
+    
+        else:
+            st.warning("Timestamp or Race column not found.")
+    
+        st.markdown('</div>', unsafe_allow_html=True)
 # ----------------------------
 # TREND TAB (UNCHANGED)
 # ----------------------------
