@@ -761,7 +761,7 @@ with tab4:
     # LEARNER ABSENCE ANALYSIS
     # -----------------------------
     st.markdown("---")
-    st.subheader("Learner Absence Tracker")
+    st.subheader("Days When Learner Was Absent")
     
     # Get absent learner names
     absent_names = absent_df["child's name"].dropna().unique()
