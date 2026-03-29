@@ -577,8 +577,8 @@ with tab2:
             yaxis = dict(
                 tickfont = dict(size = 12),
                 title = dict(size = 16)
-            )
         )
+        
                 
             
 
