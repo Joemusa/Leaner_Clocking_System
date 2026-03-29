@@ -795,20 +795,22 @@ if len(absent_names) > 0:
         # EXPORT ABSENT TABLE
         # -----------------------------
         import io
+
+        def convert_df_to_csv(df):
+            return df.to_csv(index=False).encode('utf-8')
         
-        def convert_df_to_excel(df):
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                df.to_excel(writer, index=False, sheet_name='Absent Learners')
-            return output.getvalue()
-        
-        excel_data = convert_df_to_excel(absent_df)
+        st.dataframe(
+            absent_df[
+                ["student_id", "child's name", "grade", "gender", "times_absent"]
+            ],
+            use_container_width=True
+        )
         
         st.download_button(
-            label="📥 Export Absent Learners to Excel",
-            data=excel_data,
-            file_name="absent_learners.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            label="📥 Export Absent Learners",
+            data=csv_data,
+            file_name="absent_learners.csv",
+            mime="text/csv"
         )
 
         # -----------------------------
