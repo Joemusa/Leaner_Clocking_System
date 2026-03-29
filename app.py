@@ -466,15 +466,14 @@ with tab1:
 # TREND TAB (UNCHANGED)
 # ----------------------------
 with tab2:
+
     # -----------------------------
     # LOAD DATA
     # -----------------------------
     df = reg_df.copy()
     
-    # Clean columns
     df.columns = df.columns.str.strip().str.lower()
     
-    # Ensure required columns exist
     if "timestamp" in df.columns and "gender" in df.columns:
     
         df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
@@ -484,7 +483,7 @@ with tab2:
         df = df.dropna(subset=["date", "gender"])
     
         # -----------------------------
-        # AGGREGATE FOR BAR CHART
+        # AGGREGATE
         # -----------------------------
         attendance = (
             df.groupby(["date", "gender"])
@@ -493,10 +492,19 @@ with tab2:
         )
     
         # -----------------------------
-        # SESSION STATE FOR FILTER
+        # SESSION STATE
         # -----------------------------
         if "selected_date" not in st.session_state:
             st.session_state.selected_date = None
+    
+        # -----------------------------
+        # REFRESH BUTTON (CLEAR FILTER)
+        # -----------------------------
+        colA, colB = st.columns([1, 5])
+    
+        with colA:
+            if st.button("🔄 Refresh"):
+                st.session_state.selected_date = None
     
         # -----------------------------
         # BAR CHART
@@ -507,10 +515,19 @@ with tab2:
             y="count",
             color="gender",
             barmode="group",
+            text="count",  # ✅ DATA LABELS
             title="Daily Attendance by Gender"
         )
     
-        # Capture click
+        # Make labels look nice
+        fig.update_traces(textposition="outside")
+    
+        fig.update_layout(
+            height=400,
+            uniformtext_minsize=8,
+            uniformtext_mode='hide'
+        )
+    
         selected = st.plotly_chart(
             fig,
             use_container_width=True,
@@ -519,7 +536,7 @@ with tab2:
         )
     
         # -----------------------------
-        # HANDLE CLICK EVENT
+        # HANDLE CLICK
         # -----------------------------
         if selected and "selection" in selected:
             points = selected["selection"]["points"]
@@ -528,7 +545,7 @@ with tab2:
                 st.session_state.selected_date = clicked_date
     
         # -----------------------------
-        # FILTER TABLE
+        # TABLE
         # -----------------------------
         st.subheader("Learner Tracker")
     
@@ -544,6 +561,7 @@ with tab2:
     
     else:
         st.warning("Required columns not found.")
+    
 
 # ----------------------------
 # TABLES (UNCHANGED)
