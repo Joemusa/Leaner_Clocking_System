@@ -470,23 +470,74 @@ with tab2:
     # -----------------------------
     # LOAD DATA
     # -----------------------------
-    
-   
-    
+    df = learner_df.copy()
+    df.columns = df.columns.str.strip().str.lower()
+
+    # -----------------------------
+    # VALIDATION
+    # -----------------------------
+    if "scan_date" in df.columns and "gender" in df.columns:
+
+        # Clean data
+        df["scan_date"] = pd.to_datetime(df["scan_date"], errors="coerce")
+        df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
+
+        df = df.dropna(subset=["scan_date", "gender"])
+
+        # -----------------------------
+        # SESSION STATE
+        # -----------------------------
+        if "selected_date" not in st.session_state:
+            st.session_state.selected_date = None
+
+        if "selected_gender" not in st.session_state:
+            st.session_state.selected_gender = None
+
+        # -----------------------------
+        # GENDER FILTER (DROPDOWN)
+        # -----------------------------
+        genders = ["All"] + sorted(df["gender"].dropna().unique().tolist())
+
+        selected_gender_filter = st.selectbox(
+            "Filter by Gender",
+            genders
+        )
+
+        # Apply dropdown filter
+        df_filtered = df.copy()
+
+        if selected_gender_filter != "All":
+            df_filtered = df_filtered[
+                df_filtered["gender"] == selected_gender_filter
+            ]
+
+        # -----------------------------
+        # AGGREGATE (FOR CHART)
+        # -----------------------------
+        attendance = (
+            df_filtered.groupby([df_filtered["scan_date"].dt.normalize(), "gender"])
+            .size()
+            .reset_index(name="count")
+        )
+
+        attendance.rename(columns={"scan_date": "date"}, inplace=True)
+        attendance["date"] = pd.to_datetime(attendance["date"])
+
         # -----------------------------
         # REFRESH BUTTON
         # -----------------------------
         colA, colB = st.columns([1, 5])
-    
+
         with colA:
             if st.button("🔄 Refresh"):
                 st.session_state.selected_date = None
-    
+                st.session_state.selected_gender = None
+
         # -----------------------------
         # BAR CHART
         # -----------------------------
         if not attendance.empty:
-    
+
             fig = px.bar(
                 attendance,
                 x="date",
@@ -496,118 +547,80 @@ with tab2:
                 text="count",
                 title="Daily Attendance by Gender"
             )
-    
+
             fig.update_traces(textposition="outside")
-    
+
             selected = st.plotly_chart(
                 fig,
                 use_container_width=True,
                 key="attendance_chart",
                 on_select="rerun"
             )
-    
-    # -----------------------------
-    # HANDLE CLICK
-    # -----------------------------
-        if selected and selected.get("selection"):
-            points = selected["selection"]["points"]
-            if len(points) > 0:
-                clicked_date = pd.to_datetime(points[0]["x"]).normalize()
-    
-                    # ✅ SAFER WAY TO GET GENDER
-                clicked_gender = points[0].get("legendgroup")
-    
-            # Fallback (important)
-        if not clicked_gender:
-            clicked_gender = points[0].get("label")
-    
-            # Save both
-            st.session_state.selected_date = clicked_date
-            st.session_state.selected_gender = clicked_gender
-    
-    
-    # -----------------------------
-    # TABLE
-    # -----------------------------
-     # -----------------------------
-    # GENDER FILTER
-    # -----------------------------
-    genders = ["All"] + sorted(df["gender"].dropna().unique().tolist())
-    
-    selected_gender_filter = st.selectbox(
-        "Filter by Gender",
-        genders
-    )
-    
-    df = learner_df.copy()
-    
-    df.columns = df.columns.str.strip().str.lower()
-    
-    # ✅ FIX COLUMN NAME HERE
-    if "scan_date" in df.columns and "gender" in df.columns:
-    
-        # ✅ USE CORRECT COLUMN
-        df["scan_date"] = pd.to_datetime(df["scan_date"], errors="coerce")
-        df["date"] = df["scan_date"].dt.date
-        df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
-    
-        df = df.dropna(subset=["date", "gender"])
-    
-        # -----------------------------
-        # AGGREGATE
-        # -----------------------------
-        attendance = (
-            df.groupby(["date", "gender"])
-            .size()
-            .reset_index(name="count")
-        )
-    
-        # ✅ CRITICAL FIX FOR PLOTLY
-        attendance["date"] = pd.to_datetime(attendance["date"])
-    
-        # -----------------------------
-        # SESSION STATE
-        # -----------------------------
-        if "selected_date" not in st.session_state:
-            st.session_state.selected_date = None
-    # -----------------------------
-    # GENDER FILTER
-    # -----------------------------
-    st.subheader("Learner Tracker Data")
 
-    filtered_df = df.copy()
-    
-    # ✅ Apply dropdown gender filter
-    if selected_gender_filter != "All":
-        filtered_df = filtered_df[
-            filtered_df["gender"].str.lower() == selected_gender_filter.lower()
-        ]
-    
-    # ✅ Apply click filter (date + gender)
-    if st.session_state.get("selected_date"):
-    
-        selected_date = pd.to_datetime(st.session_state.selected_date).normalize()
-    
-        filtered_df = filtered_df[
-            filtered_df["scan_date"].dt.normalize() == selected_date
-        ]
-    
-        # If chart gender was clicked, override dropdown
-        if st.session_state.get("selected_gender"):
+            # -----------------------------
+            # HANDLE CLICK
+            # -----------------------------
+            if selected and selected.get("selection"):
+
+                points = selected["selection"]["points"]
+
+                if len(points) > 0:
+
+                    clicked_date = pd.to_datetime(points[0]["x"]).normalize()
+
+                    clicked_gender = points[0].get("legendgroup")
+                    if not clicked_gender:
+                        clicked_gender = points[0].get("label")
+
+                    st.session_state.selected_date = clicked_date
+                    st.session_state.selected_gender = clicked_gender
+
+        else:
+            st.warning("No attendance data available.")
+
+        # -----------------------------
+        # TABLE
+        # -----------------------------
+        st.subheader("Learner Tracker Data")
+
+        filtered_df = df.copy()
+
+        # Apply dropdown filter
+        if selected_gender_filter != "All":
             filtered_df = filtered_df[
-                filtered_df["gender"].str.lower() == st.session_state.selected_gender.lower()
+                filtered_df["gender"] == selected_gender_filter
             ]
-    
-        st.info(
-            f"Filtered for: {selected_date.date()} | Gender: {st.session_state.get('selected_gender', selected_gender_filter)}"
+
+        # Apply click filter
+        if st.session_state.get("selected_date"):
+
+            selected_date = pd.to_datetime(st.session_state.selected_date).normalize()
+
+            filtered_df = filtered_df[
+                filtered_df["scan_date"].dt.normalize() == selected_date
+            ]
+
+            # Apply clicked gender (override dropdown)
+            if st.session_state.get("selected_gender"):
+                filtered_df = filtered_df[
+                    filtered_df["gender"] == st.session_state.selected_gender
+                ]
+
+            st.info(
+                f"Filtered for: {selected_date.date()} | Gender: {st.session_state.get('selected_gender', selected_gender_filter)}"
+            )
+
+        st.dataframe(
+            filtered_df[
+                ["studentid", "scan_date", "time", "direction", "grade", "gender"]
+            ],
+            use_container_width=True
         )
-    
-    st.dataframe(
-        filtered_df[
-            ["studentid", "scan_date", "time", "direction", "grade", "gender"]
-        ],
-        use_container_width=True
-    )
+
+    else:
+        st.warning("scan_date or gender column not found.")
+
+
 # ----------------------------
 # TABLES (UNCHANGED)
 # ----------------------------
