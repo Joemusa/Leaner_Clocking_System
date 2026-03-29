@@ -612,7 +612,7 @@ with tab2:
 
         st.dataframe(
             filtered_df[
-                ["studentid", "scan_date", "time", "direction", "grade", "gender"]
+                ["student_id", "scan_date", "time", "direction", "grade", "gender"]
             ],
             use_container_width=True
         )
