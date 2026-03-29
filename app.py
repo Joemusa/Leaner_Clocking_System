@@ -334,24 +334,26 @@ with tab1:
         st.subheader("Attendance Trend (Male vs Female)")
     
         # Clean column names
-        filtered_df.columns = filtered_df.columns.str.strip().str.lower()
+        reg_df.columns = reg_df.columns.str.strip().str.lower()
     
-        if "scan_date" in filtered_df.columns and "gender" in filtered_df.columns:
+        if "timestamp" in reg_df.columns and "gender" in reg_df.columns:
     
-            df = filtered_df.copy()
+            df = reg_df.copy()
     
-            df["scan_date"] = pd.to_datetime(df["scan_date"], errors="coerce").dt.date
+            # ✅ Use Timestamp instead of scan_date
+            df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce").dt.date
+    
             df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
     
-            df = df.dropna(subset=["scan_date", "gender"])
+            df = df.dropna(subset=["timestamp", "gender"])
     
-            attendance_trend = df.groupby(["scan_date", "gender"]).size().reset_index(name="count")
+            attendance_trend = df.groupby(["timestamp", "gender"]).size().reset_index(name="count")
     
             import plotly.express as px
     
             fig = px.area(
                 attendance_trend,
-                x="scan_date",
+                x="timestamp",
                 y="count",
                 color="gender",
                 title="Daily Attendance by Gender"
@@ -360,10 +362,9 @@ with tab1:
             st.plotly_chart(fig, use_container_width=True)
     
         else:
-            st.warning("Date or Gender column not found in data.")
+            st.warning("Timestamp or Gender column not found in data.")
     
         st.markdown('</div>', unsafe_allow_html=True)
-    
 
 # ----------------------------
 # TREND TAB (UNCHANGED)
