@@ -331,7 +331,7 @@ with tab1:
     
     with col4:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-        st.subheader("Attendance Trend (Male vs Female)")
+        st.subheader("Yearly Attendance (Male vs Female)")
     
         # Clean column names
         reg_df.columns = reg_df.columns.str.strip().str.lower()
@@ -340,32 +340,39 @@ with tab1:
     
             df = reg_df.copy()
     
-            # ✅ Use Timestamp instead of scan_date
-            df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce").dt.date
+            # ✅ Convert to datetime
+            df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
     
+            # ✅ Extract YEAR
+            df["year"] = df["timestamp"].dt.year
+    
+            # Clean gender
             df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
     
-            df = df.dropna(subset=["timestamp", "gender"])
+            # Drop bad rows
+            df = df.dropna(subset=["year", "gender"])
     
-            attendance_trend = df.groupby(["timestamp", "gender"]).size().reset_index(name="count")
+            # ✅ Group by Year + Gender
+            trend = df.groupby(["year", "gender"]).size().reset_index(name="count")
     
             import plotly.express as px
     
-            fig = px.area(
-                attendance_trend,
-                x="timestamp",
+            # ✅ Stacked Bar Chart
+            fig = px.bar(
+                trend,
+                x="year",
                 y="count",
                 color="gender",
-                title="Daily Attendance by Gender"
+                barmode="stack",
+                title="Yearly Attendance by Gender"
             )
     
             st.plotly_chart(fig, use_container_width=True)
     
         else:
-            st.warning("Timestamp or Gender column not found in data.")
+            st.warning("Timestamp or Gender column not found.")
     
         st.markdown('</div>', unsafe_allow_html=True)
-
 # ----------------------------
 # TREND TAB (UNCHANGED)
 # ----------------------------
