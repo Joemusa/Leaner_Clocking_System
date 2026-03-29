@@ -424,13 +424,13 @@ with tab1:
                 spine.set_visible(False)
         
                 # ✅ LABELS INSIDE BARS
-                for container in ax.containers:
+            for container in ax.containers:
                 ax.bar_label(container, label_type='center', fontsize=7)
         
                 # ✅ TOTAL LABELS ON TOP
-                for i, year in enumerate(pivot.index):
-                    total = pivot.loc[year].sum()
-                    ax.text(i, total, str(int(total)), ha='center', va='bottom', fontsize=8)
+            for i, year in enumerate(pivot.index):
+                total = pivot.loc[year].sum()
+                ax.text(i, total, str(int(total)), ha='center', va='bottom', fontsize=8)
         
                 # Clean axes
                 ax.set_title("")
