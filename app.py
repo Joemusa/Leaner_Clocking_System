@@ -329,7 +329,7 @@ with tab1:
 
     col4, col5 = st.columns(2)
     
-    with col4:
+   with col4:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Yearly Attendance (Male vs Female)")
     
@@ -340,31 +340,40 @@ with tab1:
     
             df = reg_df.copy()
     
-            # ✅ Convert to datetime
             df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
-    
-            # ✅ Extract YEAR
             df["year"] = df["timestamp"].dt.year
-    
-            # Clean gender
             df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
     
-            # Drop bad rows
             df = df.dropna(subset=["year", "gender"])
     
-            # ✅ Group by Year + Gender
             trend = df.groupby(["year", "gender"]).size().reset_index(name="count")
+            trend = trend.sort_values("year")
     
             import plotly.express as px
     
-            # ✅ Stacked Bar Chart
             fig = px.bar(
                 trend,
                 x="year",
                 y="count",
                 color="gender",
                 barmode="stack",
+                text="count",  # ✅ DATA LABELS
                 title="Yearly Attendance by Gender"
+            )
+    
+            # ✅ WHITE BACKGROUND + CLEAN STYLE
+            fig.update_layout(
+                plot_bgcolor="white",
+                paper_bgcolor="white",
+                font=dict(color="black"),
+                xaxis=dict(showgrid=False),
+                yaxis=dict(showgrid=True, gridcolor="lightgray")
+            )
+    
+            # ✅ Make labels readable
+            fig.update_traces(
+                textposition="inside",
+                insidetextanchor="middle"
             )
     
             st.plotly_chart(fig, use_container_width=True)
