@@ -744,3 +744,81 @@ with tab4:
         ],
         use_container_width=True
     )
+
+# -----------------------------
+# LEARNER ABSENCE ANALYSIS
+# -----------------------------
+st.markdown("---")
+st.subheader("Learner Absence Tracker")
+
+# Get absent learner names
+absent_names = absent_df["child's name"].dropna().unique()
+
+if len(absent_names) > 0:
+
+    selected_name = st.selectbox(
+        "Select Learner",
+        sorted(absent_names)
+    )
+
+    # Get selected learner ID
+    learner_row = absent_df[absent_df["child's name"] == selected_name]
+
+    if not learner_row.empty:
+
+        learner_id = learner_row["student_id"].values[0]
+
+        # -----------------------------
+        # GET ALL SCHOOL DAYS (YTD)
+        # -----------------------------
+        all_dates = (
+            att_df["scan_date"]
+            .dropna()
+            .dt.normalize()
+            .sort_values()
+            .unique()
+        )
+
+        all_dates = pd.to_datetime(all_dates)
+
+        # -----------------------------
+        # GET PRESENT DAYS
+        # -----------------------------
+        learner_attendance = att_df[
+            att_df["student_id"] == learner_id
+        ]
+
+        present_dates = learner_attendance["scan_date"].dt.normalize().unique()
+        present_dates = pd.to_datetime(present_dates)
+
+        # -----------------------------
+        # ABSENT DAYS = ALL - PRESENT
+        # -----------------------------
+        absent_dates = sorted(set(all_dates) - set(present_dates))
+        absent_dates = pd.to_datetime(absent_dates)
+
+        if len(absent_dates) > 0:
+
+            import matplotlib.pyplot as plt
+
+            fig, ax = plt.subplots(figsize=(12, 4))
+
+            # Lollipop chart
+            ax.vlines(absent_dates, ymin=0, ymax=1)
+            ax.scatter(absent_dates, [1]*len(absent_dates), s=100)
+
+            # Formatting
+            ax.set_ylim(0, 1.2)
+            ax.set_yticks([])
+            ax.set_title(f"Absence Days - {selected_name}")
+            ax.set_xlabel("Date")
+
+            plt.xticks(rotation=45)
+
+            st.pyplot(fig)
+
+        else:
+            st.success("No absences for this learner 🎉")
+
+else:
+    st.info("No absent learners for selected date.")
