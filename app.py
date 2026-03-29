@@ -347,17 +347,22 @@ with tab1:
             df = df.dropna(subset=["year", "gender"])
     
             pivot = df.groupby(["year", "gender"]).size().unstack(fill_value=0).sort_index()
-    
-            import matplotlib.pyplot as plt
-    
-            # ✅ MATCH SIZE + FONT SCALE
-            plt.rcParams.update({
-                "font.size": 8  # smaller consistent font
-            })
-    
-            fig, ax = plt.subplots(figsize=(12,4))
-    
-            pivot.plot(kind="bar", stacked=True, ax=ax)
+
+        # ✅ FIX YEAR FORMAT HERE
+        pivot.index = pivot.index.astype(int).astype(str)
+        
+        import matplotlib.pyplot as plt
+        
+        plt.rcParams.update({
+            "font.size": 8
+        })
+        
+        fig, ax = plt.subplots(figsize=(12,4))    
+        
+        pivot.plot(kind="bar", stacked=True, ax=ax)
+        
+        # ✅ FORCE CLEAN X-AXIS LABELS
+        ax.set_xticklabels(pivot.index, rotation=0)
     
             # ✅ REMOVE BORDER (spines)
             for spine in ax.spines.values():
