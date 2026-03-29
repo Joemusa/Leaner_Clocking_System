@@ -333,50 +333,44 @@ with tab1:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Yearly Attendance (Male vs Female)")
     
-        # Clean column names
+        # Clean columns
         reg_df.columns = reg_df.columns.str.strip().str.lower()
     
         if "timestamp" in reg_df.columns and "gender" in reg_df.columns:
     
             df = reg_df.copy()
     
+            # Convert + extract year
             df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
             df["year"] = df["timestamp"].dt.year
             df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
     
             df = df.dropna(subset=["year", "gender"])
     
-            trend = df.groupby(["year", "gender"]).size().reset_index(name="count")
-            trend = trend.sort_values("year")
+            # Pivot for stacked bar
+            pivot = df.groupby(["year", "gender"]).size().unstack(fill_value=0)
     
-            import plotly.express as px
+            import matplotlib.pyplot as plt
     
-            fig = px.bar(
-                trend,
-                x="year",
-                y="count",
-                color="gender",
-                barmode="stack",
-                text="count",  # ✅ DATA LABELS
-                title="Yearly Attendance by Gender"
-            )
+            fig, ax = plt.subplots()
     
-            # ✅ WHITE BACKGROUND + CLEAN STYLE
-            fig.update_layout(
-                plot_bgcolor="white",
-                paper_bgcolor="white",
-                font=dict(color="black"),
-                xaxis=dict(showgrid=False),
-                yaxis=dict(showgrid=True, gridcolor="lightgray")
-            )
+            # Stacked bars
+            pivot.plot(kind="bar", stacked=True, ax=ax)
     
-            # ✅ Make labels readable
-            fig.update_traces(
-                textposition="inside",
-                insidetextanchor="middle"
-            )
+            # ✅ Add data labels (on top of stacks)
+            for i, year in enumerate(pivot.index):
+                total = pivot.loc[year].sum()
+                ax.text(i, total, str(int(total)), ha='center', va='bottom')
     
-            st.plotly_chart(fig, use_container_width=True)
+            ax.set_title("Yearly Attendance by Gender")
+            ax.set_xlabel("Year")
+            ax.set_ylabel("Count")
+    
+            # ✅ White background like your Grade chart
+            fig.patch.set_facecolor("white")
+            ax.set_facecolor("white")
+    
+            st.pyplot(fig)
     
         else:
             st.warning("Timestamp or Gender column not found.")
