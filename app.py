@@ -511,11 +511,11 @@ with tab2:
     # -----------------------------
         if selected and selected.get("selection"):
             points = selected["selection"]["points"]
-                if len(points) > 0:
-                    clicked_date = pd.to_datetime(points[0]["x"]).normalize()
+            if len(points) > 0:
+                clicked_date = pd.to_datetime(points[0]["x"]).normalize()
     
                     # ✅ SAFER WAY TO GET GENDER
-                    clicked_gender = points[0].get("legendgroup")
+                clicked_gender = points[0].get("legendgroup")
     
             # Fallback (important)
         if not clicked_gender:
