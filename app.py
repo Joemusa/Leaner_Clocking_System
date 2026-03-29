@@ -246,9 +246,9 @@ def plot_line(df):
 # TABS (UNCHANGED)
 # ----------------------------
 tab1, tab2, tab3 = st.tabs([
-    "Dashboard",
+    "School Demographics",
     "Attendance",
-    "Registration Form Table"
+    "Registered Leaners"
 ])
 
 # ----------------------------
