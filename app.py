@@ -69,7 +69,7 @@ st.markdown("""
 }
 
 .kpi-title {
-    font-size: 14px;
+    font-size: 16px;
     color: #bbbbbb;
     margin-bottom: 8px;
     font-weight: 600;
@@ -97,7 +97,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("📊 Learner Clocking Dashboard")
+st.title("📊 SChool Attendance Dashboard")
 
 # ----------------------------
 # GOOGLE SHEETS CONNECTION
