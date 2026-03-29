@@ -566,7 +566,18 @@ with tab2:
                 title="Daily Attendance by Gender"
             )
 
-            fig.update_traces(textposition="outside")
+            fig.update_traces(textposition="outside", textfont=dict(size = 14))
+            fig.update_layout(
+                xaxis = dict(size = 12),
+                title_font = dict(size = 14)
+            ),
+            yaxis = dict(
+                tickfont = dict(size = 12),
+                title = dict(size = 16)
+            )
+            )
+                
+            
 
             selected = st.plotly_chart(
                 fig,
