@@ -478,8 +478,8 @@ with tab2:
     if "time_stamp" in df.columns and "gender" in df.columns:
     
         # ✅ USE CORRECT COLUMN
-        df["time_stamp"] = pd.to_datetime(df["time_stamp"], errors="coerce")
-        df["date"] = df["time_stamp"].dt.date
+        df["scan_date"] = pd.to_datetime(df["scan_date"], errors="coerce")
+        df["date"] = df["scan_date"].dt.date
         df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
     
         df = df.dropna(subset=["date", "gender"])
