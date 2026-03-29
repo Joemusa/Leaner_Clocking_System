@@ -566,7 +566,10 @@ with tab2:
                 title="Daily Attendance by Gender"
             )
 
-            fig.update_traces(textposition="outside", textfont=dict(size = 14))
+            fig.update_traces(
+                textposition="outside", 
+                textfont=dict(size = 14)
+            )
             fig.update_layout(
                 xaxis = dict(size = 12),
                 title_font = dict(size = 14)
@@ -575,7 +578,7 @@ with tab2:
                 tickfont = dict(size = 12),
                 title = dict(size = 16)
             )
-            )
+        )
                 
             
 
