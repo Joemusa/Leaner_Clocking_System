@@ -637,7 +637,7 @@ with tab4:
     # -----------------------------
     # LOAD DATA
     # -----------------------------
-    reg_df = registration_df.copy()
+    reg_df = reg_df.copy()
     att_df = learner_df.copy()
 
     # Clean columns
@@ -647,15 +647,15 @@ with tab4:
     # -----------------------------
     # CLEAN DATA
     # -----------------------------
-    reg_df["studentid"] = reg_df["studentid"].astype(str).str.strip()
-    att_df["studentid"] = att_df["studentid"].astype(str).str.strip()
+    reg_df["studentid"] = reg_df["student_id"].astype(str).str.strip()
+    att_df["studentid"] = att_df["student_id"].astype(str).str.strip()
 
     att_df["scan_date"] = pd.to_datetime(att_df["scan_date"], errors="coerce")
 
     # -----------------------------
     # REMOVE DUPLICATES (CRITICAL)
     # -----------------------------
-    reg_df = reg_df.drop_duplicates(subset=["studentid"])
+    reg_df = reg_df.drop_duplicates(subset=["student_id"])
 
     # -----------------------------
     # DATE FILTER
@@ -672,21 +672,21 @@ with tab4:
     ]
 
     # ✅ KEEP UNIQUE STUDENTS ONLY
-    present_ids = present_df["studentid"].drop_duplicates()
+    present_ids = present_df["student_id"].drop_duplicates()
 
     # -----------------------------
     # ABSENT LEARNERS
     # -----------------------------
     absent_df = reg_df[
-        ~reg_df["studentid"].isin(present_ids)
+        ~reg_df["student_id"].isin(present_ids)
     ]
 
     # -----------------------------
     # VALIDATION (VERY IMPORTANT)
     # -----------------------------
-    total_registered = reg_df["studentid"].nunique()
+    total_registered = reg_df["student_id"].nunique()
     total_present = present_ids.nunique()
-    total_absent = absent_df["studentid"].nunique()
+    total_absent = absent_df["student_id"].nunique()
 
     # Safety check
     if total_absent > total_registered:
@@ -705,7 +705,7 @@ with tab4:
     col3.metric("Absent", total_absent)
 
     # ✅ SHOW UNIQUE ABSENTEES ONLY
-    absent_df = absent_df.drop_duplicates(subset=["studentid"])
+    absent_df = absent_df.drop_duplicates(subset=["student_id"])
 
     st.dataframe(
         absent_df,
