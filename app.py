@@ -567,7 +567,7 @@ with tab2:
             )
             fig.update_traces(
                 textposition="outside",
-                textfont=dict(size=16)   # ✅ numbers on bars
+                textfont=dict(size=18)   # ✅ numbers on bars
             )
 
             fig.update_layout(
