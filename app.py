@@ -631,9 +631,6 @@ with tab3:
     st.dataframe(reg_df, use_container_width=True)
 
 with tab4:
-
-    with tab4:
-
     st.subheader("Absent Learners")
 
     # -----------------------------
