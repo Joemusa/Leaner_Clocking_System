@@ -331,12 +331,12 @@ with tab1:
     
     with col4:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-        st.subheader("Yearly Attendance")
+        st.subheader("Yearly Attendance (Male vs Female)")
     
         # Clean column names
         reg_df.columns = reg_df.columns.str.strip().str.lower()
     
-        if "timestamp" in reg_df.columns:
+        if "timestamp" in reg_df.columns and "gender" in reg_df.columns:
     
             df = reg_df.copy()
     
@@ -344,40 +344,42 @@ with tab1:
             df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
             df["year"] = df["timestamp"].dt.year
     
-            df = df.dropna(subset=["year"])
+            # Clean gender
+            df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
     
-            # Count per year
-            series = df["year"].value_counts().sort_index()
+            df = df.dropna(subset=["year", "gender"])
+    
+            # Create pivot for stacked bars
+            pivot = df.groupby(["year", "gender"]).size().unstack(fill_value=0).sort_index()
     
             import matplotlib.pyplot as plt
     
-            fig, ax = plt.subplots()
+            # ✅ SAME HEIGHT AS OTHER CHARTS
+            fig, ax = plt.subplots(figsize=(6,4))
     
-            bars = ax.bar(series.index.astype(str), series.values)
+            pivot.plot(kind="bar", stacked=True, ax=ax)
     
-            # Data labels
-            for bar in bars:
-                ax.text(
-                    bar.get_x() + bar.get_width()/2,
-                    bar.get_height(),
-                    str(int(bar.get_height())),
-                    ha='center',
-                    va='bottom'
-                )
+            # ✅ DATA LABELS (each segment + total)
+            for container in ax.containers:
+                ax.bar_label(container, label_type='center')
     
-            ax.set_title("Yearly Attendance")
+            # Total labels on top
+            for i, year in enumerate(pivot.index):
+                total = pivot.loc[year].sum()
+                ax.text(i, total, str(int(total)), ha='center', va='bottom')
+    
+            ax.set_title("Yearly Attendance by Gender")
             ax.set_xlabel("Year")
             ax.set_ylabel("Count")
     
-            # White background (same as your Grade chart)
+            # ✅ MATCH YOUR DASHBOARD STYLE
             fig.patch.set_facecolor("white")
             ax.set_facecolor("white")
     
             st.pyplot(fig)
     
         else:
-            st.warning("Timestamp column not found.")
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.warning("Timestamp or Gender column not found.")
             st.markdown('</div>', unsafe_allow_html=True)
 # ----------------------------
 # TREND TAB (UNCHANGED)
