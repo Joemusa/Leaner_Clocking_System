@@ -637,7 +637,7 @@ with tab4:
     # -----------------------------
     # LOAD DATA
     # -----------------------------
-    reg_df = registration_df.copy()
+    reg_df = reg_df.copy()
     att_df = learner_df.copy()
 
     # Clean columns
