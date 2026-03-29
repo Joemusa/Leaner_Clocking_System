@@ -469,63 +469,63 @@ with tab2:
 # -----------------------------
 # LOAD DATA
 # -----------------------------
-df = reg_df.copy()
-
-# Clean columns
-df.columns = df.columns.str.strip().str.lower()
-
-# Ensure required columns exist
-if "timestamp" in df.columns and "gender" in df.columns:
-
-    df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
-    df["date"] = df["timestamp"].dt.date
-    df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
-
-    df = df.dropna(subset=["date", "gender"])
-
-    # -----------------------------
-    # AGGREGATE FOR BAR CHART
-    # -----------------------------
-    attendance = (
-        df.groupby(["date", "gender"])
-        .size()
-        .reset_index(name="count")
-    )
-
-    # -----------------------------
-    # SESSION STATE FOR FILTER
-    # -----------------------------
-    if "selected_date" not in st.session_state:
-        st.session_state.selected_date = None
-
-    # -----------------------------
-    # BAR CHART
-    # -----------------------------
-    fig = px.bar(
-        attendance,
-        x="date",
-        y="count",
-        color="gender",
-        barmode="group",
-        title="Daily Attendance by Gender"
-    )
-
-    # Capture click
-    selected = st.plotly_chart(
-        fig,
-        use_container_width=True,
-        key="attendance_chart",
-        on_select="rerun"
-    )
-
-    # -----------------------------
-    # HANDLE CLICK EVENT
-    # -----------------------------
-    if selected and "selection" in selected:
-        points = selected["selection"]["points"]
-        if points:
-            clicked_date = points[0]["x"]
-            st.session_state.selected_date = clicked_date
+    df = reg_df.copy()
+    
+    # Clean columns
+    df.columns = df.columns.str.strip().str.lower()
+    
+    # Ensure required columns exist
+    if "timestamp" in df.columns and "gender" in df.columns:
+    
+        df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+        df["date"] = df["timestamp"].dt.date
+        df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
+    
+        df = df.dropna(subset=["date", "gender"])
+    
+        # -----------------------------
+        # AGGREGATE FOR BAR CHART
+        # -----------------------------
+        attendance = (
+            df.groupby(["date", "gender"])
+            .size()
+            .reset_index(name="count")
+        )
+    
+        # -----------------------------
+        # SESSION STATE FOR FILTER
+        # -----------------------------
+        if "selected_date" not in st.session_state:
+            st.session_state.selected_date = None
+    
+        # -----------------------------
+        # BAR CHART
+        # -----------------------------
+        fig = px.bar(
+            attendance,
+            x="date",
+            y="count",
+            color="gender",
+            barmode="group",
+            title="Daily Attendance by Gender"
+        )
+    
+        # Capture click
+        selected = st.plotly_chart(
+            fig,
+            use_container_width=True,
+            key="attendance_chart",
+            on_select="rerun"
+        )
+    
+        # -----------------------------
+        # HANDLE CLICK EVENT
+        # -----------------------------
+        if selected and "selection" in selected:
+            points = selected["selection"]["points"]
+            if points:
+                clicked_date = points[0]["x"]
+                st.session_state.selected_date = clicked_date
 
     # -----------------------------
     # FILTER TABLE
