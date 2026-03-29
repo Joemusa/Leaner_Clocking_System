@@ -465,10 +465,9 @@ with tab1:
 # TREND TAB (UNCHANGED)
 # ----------------------------
 with tab2:
-
-# -----------------------------
-# LOAD DATA
-# -----------------------------
+    # -----------------------------
+    # LOAD DATA
+    # -----------------------------
     df = reg_df.copy()
     
     # Clean columns
@@ -516,30 +515,32 @@ with tab2:
             use_container_width=True,
             key="attendance_chart",
             on_select="rerun"
-    )
+        )
     
         # -----------------------------
         # HANDLE CLICK EVENT
         # -----------------------------
-    if selected and "selection" in selected:
-        points = selected["selection"]["points"]
-        if points:
-            clicked_date = points[0]["x"]
-            st.session_state.selected_date = clicked_date
-
-    # -----------------------------
-    # FILTER TABLE
-    # -----------------------------
-    st.subheader("Learner Tracker")
-
-    if st.session_state.selected_date:
-        filtered_df = df[df["date"] == pd.to_datetime(st.session_state.selected_date).date()]
-        st.info(f"Filtered for date: {st.session_state.selected_date}")
-    else:
-        filtered_df = df
-
-    st.dataframe(filtered_df, use_container_width=True)
-
+        if selected and "selection" in selected:
+            points = selected["selection"]["points"]
+            if points:
+                clicked_date = points[0]["x"]
+                st.session_state.selected_date = clicked_date
+    
+        # -----------------------------
+        # FILTER TABLE
+        # -----------------------------
+        st.subheader("Learner Tracker")
+    
+        if st.session_state.selected_date:
+            filtered_df = df[
+                df["date"] == pd.to_datetime(st.session_state.selected_date).date()
+            ]
+            st.info(f"Filtered for date: {st.session_state.selected_date}")
+        else:
+            filtered_df = df
+    
+        st.dataframe(filtered_df, use_container_width=True)
+    
     else:
         st.warning("Required columns not found.")
 
