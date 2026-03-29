@@ -697,7 +697,7 @@ with tab4:
     # -----------------------------
     # TIMES ABSENT (ALL DAYS)
     # -----------------------------
-    attendance_all = att_df[att_df["direction"].isin(["IN", "LATE"])
+    attendance_all = att_df[att_df["direction"].isin(["IN", "LATE"])]
     
     present_counts = (
         attendance_all.groupby("student_id")["scan_date"]
