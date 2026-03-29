@@ -650,12 +650,29 @@ with tab4:
     att_df.columns = att_df.columns.str.strip().str.lower()
 
     # -----------------------------
-    # CLEAN DATA
+    # 🔥 CLEAN DATA (FIXED)
     # -----------------------------
-    reg_df["student_id"] = reg_df["student_id"].astype(str).str.strip()
-    att_df["student_id"] = att_df["student_id"].astype(str).str.strip()
+    reg_df["student_id"] = (
+        reg_df["student_id"]
+        .astype(str)
+        .str.strip()
+        .str.upper()
+    )
 
-    att_df["direction"] = att_df["direction"].astype(str).str.strip().str.upper()
+    att_df["student_id"] = (
+        att_df["student_id"]
+        .astype(str)
+        .str.strip()
+        .str.upper()
+    )
+
+    att_df["direction"] = (
+        att_df["direction"]
+        .astype(str)
+        .str.strip()
+        .str.upper()
+    )
+
     att_df["scan_date"] = pd.to_datetime(att_df["scan_date"], errors="coerce")
 
     # Remove duplicates
@@ -672,7 +689,7 @@ with tab4:
     present_ids = present_df["student_id"].drop_duplicates()
 
     # -----------------------------
-    # ABSENT LEARNERS
+    # 🔥 ABSENT LEARNERS (FIXED MATCHING)
     # -----------------------------
     absent_df = reg_df[
         ~reg_df["student_id"].isin(present_ids)
@@ -717,7 +734,7 @@ with tab4:
     col3.metric("Absent", total_absent)
 
     # -----------------------------
-    # FINAL TABLE (ONLY ONE TABLE)
+    # FINAL TABLE
     # -----------------------------
     absent_df = absent_df.drop_duplicates(subset=["student_id"])
 
