@@ -754,7 +754,7 @@ with tab4:
         label="📥 Export Absent Learners to Excel",
         data=csv_data,
         file_name="absent_learners.csv",
-        mime="text/csv""
+        mime="text/csv"
     )
     
     # -----------------------------
