@@ -506,7 +506,8 @@ with tab2:
         with colA:
             if st.button("🔄 Refresh"):
                 st.session_state.selected_date = None
-    
+    st.write("Attendance columns:", attendance.columns)
+    st.write("Attendance preview:", attendance.head())
         # -----------------------------
         # BAR CHART
         # -----------------------------
