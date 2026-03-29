@@ -638,17 +638,16 @@ with tab3:
 
 with tab4:
     st.subheader("Absent Learners")
-
     # -----------------------------
     # LOAD DATA
     # -----------------------------
     reg_df = reg_df.copy()
     att_df = learner_df.copy()
-
+    
     # Clean columns
     reg_df.columns = reg_df.columns.str.strip().str.lower()
     att_df.columns = att_df.columns.str.strip().str.lower()
-
+    
     # -----------------------------
     # 🔥 CLEAN DATA (FIXED)
     # -----------------------------
@@ -658,26 +657,26 @@ with tab4:
         .str.strip()
         .str.upper()
     )
-
+    
     att_df["student_id"] = (
         att_df["student_id"]
         .astype(str)
         .str.strip()
         .str.upper()
     )
-
+    
     att_df["direction"] = (
         att_df["direction"]
         .astype(str)
         .str.strip()
         .str.upper()
     )
-
+    
     att_df["scan_date"] = pd.to_datetime(att_df["scan_date"], errors="coerce")
-
+    
     # Remove duplicates
     reg_df = reg_df.drop_duplicates(subset=["student_id"])
-
+    
     # -----------------------------
     # PRESENT LEARNERS (IN ONLY)
     # -----------------------------
@@ -685,66 +684,85 @@ with tab4:
         (att_df["scan_date"].dt.normalize() == selected_date) &
         (att_df["direction"] == "IN")
     ]
-
+    
     present_ids = present_df["student_id"].drop_duplicates()
-
+    
     # -----------------------------
     # 🔥 ABSENT LEARNERS (FIXED MATCHING)
     # -----------------------------
     absent_df = reg_df[
         ~reg_df["student_id"].isin(present_ids)
     ].copy()
-
+    
     # -----------------------------
     # TIMES ABSENT (ALL DAYS)
     # -----------------------------
     attendance_all = att_df[att_df["direction"] == "IN"]
-
+    
     present_counts = (
         attendance_all.groupby("student_id")["scan_date"]
         .nunique()
         .reset_index(name="days_present")
     )
-
+    
     all_dates = att_df["scan_date"].dt.normalize().dropna().unique()
     total_days = len(all_dates)
-
+    
     absent_summary = reg_df.merge(present_counts, on="student_id", how="left")
     absent_summary["days_present"] = absent_summary["days_present"].fillna(0)
     absent_summary["times_absent"] = total_days - absent_summary["days_present"]
-
+    
     absent_df = absent_df.merge(
         absent_summary[["student_id", "times_absent"]],
         on="student_id",
         how="left"
     )
-
+    
     # -----------------------------
     # METRICS
     # -----------------------------
     total_registered = reg_df["student_id"].nunique()
     total_present = present_ids.nunique()
     total_absent = absent_df["student_id"].nunique()
-
+    
     st.info(f"Date: {selected_date.date()}")
-
+    
     col1, col2, col3 = st.columns(3)
     col1.metric("Registered", total_registered)
     col2.metric("Present", total_present)
     col3.metric("Absent", total_absent)
-
+    
     # -----------------------------
     # FINAL TABLE
     # -----------------------------
     absent_df = absent_df.drop_duplicates(subset=["student_id"])
-
-    st.dataframe(
-        absent_df[
-            ["student_id", "child's name", "grade", "gender", "times_absent"]
-        ],
-        use_container_width=True
+    
+    display_df = absent_df[
+        ["student_id", "child's name", "grade", "gender", "times_absent"]
+    ]
+    
+    st.dataframe(display_df, use_container_width=True)
+    
+    # -----------------------------
+    # ✅ EXPORT TO EXCEL (ADDED)
+    # -----------------------------
+    import io
+    
+    def convert_df_to_excel(df):
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Absent Learners')
+        return output.getvalue()
+    
+    excel_data = convert_df_to_excel(display_df)
+    
+    st.download_button(
+        label="📥 Export Absent Learners to Excel",
+        data=excel_data,
+        file_name="absent_learners.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-
+    
     # -----------------------------
     # LEARNER ABSENCE ANALYSIS
     # -----------------------------
@@ -761,16 +779,12 @@ with tab4:
             sorted(absent_names)
         )
     
-        # Get selected learner ID
         learner_row = absent_df[absent_df["child's name"] == selected_name]
     
         if not learner_row.empty:
     
             learner_id = learner_row["student_id"].values[0]
     
-            # -----------------------------
-            # GET ALL SCHOOL DAYS (YTD)
-            # -----------------------------
             all_dates = (
                 att_df["scan_date"]
                 .dropna()
@@ -781,9 +795,6 @@ with tab4:
     
             all_dates = pd.to_datetime(all_dates)
     
-            # -----------------------------
-            # GET PRESENT DAYS
-            # -----------------------------
             learner_attendance = att_df[
                 att_df["student_id"] == learner_id
             ]
@@ -791,10 +802,6 @@ with tab4:
             present_dates = learner_attendance["scan_date"].dt.normalize().unique()
             present_dates = pd.to_datetime(present_dates)
     
-     
-            # -----------------------------
-            # ABSENT DAYS = ALL - PRESENT
-            # -----------------------------
             absent_dates = sorted(set(all_dates) - set(present_dates))
             absent_dates = pd.to_datetime(absent_dates)
     
@@ -805,23 +812,16 @@ with tab4:
                 
                 fig, ax = plt.subplots(figsize=(20, 4))
                 
-                # Lollipop
                 ax.vlines(absent_dates, ymin=0, ymax=1)
                 ax.scatter(absent_dates, [1]*len(absent_dates), s=100)
                 
-                # Remove borders
                 for spine in ax.spines.values():
                     spine.set_visible(False)
                 
                 ax.grid(False)
-                
-                # Format dates
                 ax.xaxis.set_major_formatter(mdates.DateFormatter('%d %b %Y'))
-                
-                # Horizontal labels
                 plt.xticks(rotation=0)
                 
-                # Clean look
                 ax.set_ylim(0, 1.2)
                 ax.set_yticks([])
                 ax.set_title(f"Absence Days - {selected_name}")
@@ -830,6 +830,4 @@ with tab4:
                 st.pyplot(fig)
             else:
                 st.success("No absences for this learner 🎉")
-    
-    #else:
-        #st.info("No absent learners for selected date.")
+
