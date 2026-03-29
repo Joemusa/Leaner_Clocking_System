@@ -566,19 +566,19 @@ with tab2:
                 title="Daily Attendance by Gender"
             )
 
-            fig.update_traces(
-                textposition="outside", 
-                textfont=dict(size = 14)
-            )
             fig.update_layout(
-                xaxis = dict(size = 12),
-                title_font = dict(size = 14)
-            ),
-            yaxis = dict(
-                tickfont = dict(size = 12),
-                title = dict(size = 16)
-        )
-        
+                xaxis=dict(
+                    tickfont=dict(size=12),     # ✅ date font size
+                    title_font=dict(size=14)
+                ),
+                yaxis=dict(
+                    tickfont=dict(size=12),
+                    title_font=dict(size=14)
+                ),
+                title=dict(
+                    font=dict(size=16)
+                )
+            )
                 
             
 
