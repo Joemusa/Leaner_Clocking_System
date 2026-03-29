@@ -818,7 +818,7 @@ with tab4:
                 
                 fig, ax = plt.subplots(figsize=(20, 4))
                 plt.rcParams.update({
-                "font.size": 16   # 🔁 change this (e.g. 10, 14, 16)
+                "font.size": 18   # 🔁 change this (e.g. 10, 14, 16)
                 })
                 
                 ax.vlines(absent_dates, ymin=0, ymax=1)
@@ -835,7 +835,7 @@ with tab4:
                 ax.set_ylim(0, 1.2)
                 ax.set_yticks([])
                 ax.set_title(f"Absence Days - {selected_name}", fontsize = 14)
-                ax.set_xlabel("Date", fontsize = 12)
+                ax.set_xlabel("Date", fontsize = 18)
                 
                 st.pyplot(fig)
             else:
