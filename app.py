@@ -311,7 +311,7 @@ with tab1:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Learners by Gender")
         if "Gender" in filtered_df.columns:
-            plot_bar(filtered_df["gender"].value_counts(), "Gender")
+            plot_bar(filtered_df["Gender"].value_counts(), "Gender")
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col3:
