@@ -647,8 +647,8 @@ with tab4:
     # -----------------------------
     # CLEAN DATA
     # -----------------------------
-    reg_df["studentid"] = reg_df["student_id"].astype(str).str.strip()
-    att_df["studentid"] = att_df["student_id"].astype(str).str.strip()
+    reg_df["student_id"] = reg_df["student_id"].astype(str).str.strip()
+    att_df["student_id"] = att_df["student_id"].astype(str).str.strip()
 
     att_df["scan_date"] = pd.to_datetime(att_df["scan_date"], errors="coerce")
 
