@@ -340,39 +340,44 @@ with tab1:
     
             df = reg_df.copy()
     
-            # Convert to datetime and extract year
             df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
             df["year"] = df["timestamp"].dt.year
-    
-            # Clean gender
             df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
     
             df = df.dropna(subset=["year", "gender"])
     
-            # Create pivot for stacked bars
             pivot = df.groupby(["year", "gender"]).size().unstack(fill_value=0).sort_index()
     
             import matplotlib.pyplot as plt
     
-            # ✅ SAME HEIGHT AS OTHER CHARTS
-            fig, ax = plt.subplots(figsize=(5,4))
+            # ✅ MATCH SIZE + FONT SCALE
+            plt.rcParams.update({
+                "font.size": 8  # smaller consistent font
+            })
+    
+            fig, ax = plt.subplots(figsize=(6,4))
     
             pivot.plot(kind="bar", stacked=True, ax=ax)
     
-            # ✅ DATA LABELS (each segment + total)
-            for container in ax.containers:
-                ax.bar_label(container, label_type='center')
+            # ✅ REMOVE BORDER (spines)
+            for spine in ax.spines.values():
+                spine.set_visible(False)
     
-            # Total labels on top
+            # ✅ LABELS INSIDE BARS
+            for container in ax.containers:
+                ax.bar_label(container, label_type='center', fontsize=7)
+    
+            # ✅ TOTAL LABELS ON TOP
             for i, year in enumerate(pivot.index):
                 total = pivot.loc[year].sum()
-                ax.text(i, total, str(int(total)), ha='center', va='bottom')
+                ax.text(i, total, str(int(total)), ha='center', va='bottom', fontsize=8)
     
-            ax.set_title("Yearly Attendance by Gender")
-            ax.set_xlabel("Year")
-            ax.set_ylabel("Count")
+            # Clean axes
+            ax.set_title("")
+            ax.set_xlabel("")
+            ax.set_ylabel("")
     
-            # ✅ MATCH YOUR DASHBOARD STYLE
+            # White background
             fig.patch.set_facecolor("white")
             ax.set_facecolor("white")
     
@@ -380,7 +385,8 @@ with tab1:
     
         else:
             st.warning("Timestamp or Gender column not found.")
-            st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
 # ----------------------------
 # TREND TAB (UNCHANGED)
 # ----------------------------
