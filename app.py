@@ -303,8 +303,8 @@ with tab1:
     with col1:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Learners by Grade")
-        if "grade" in filtered_df.columns:
-            plot_bar(filtered_df["grade"].value_counts().sort_index(), "Grade")
+        if "Grade" in filtered_df.columns:
+            plot_bar(filtered_df["Grade"].value_counts().sort_index(), "Grade")
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
