@@ -566,7 +566,7 @@ with tab2:
                 title="Daily Attendance by Gender"
             )
             fig.update_traces(
-                textposition="outside",
+                textposition="inside",
                 textfont=dict(size=18)   # ✅ numbers on bars
             )
 
