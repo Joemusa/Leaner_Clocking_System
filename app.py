@@ -446,7 +446,7 @@ with tab1:
             else:
                 st.warning("Timestamp or Gender column not found.")
     
-        st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 # ----------------------------
 # TREND TAB (UNCHANGED)
 # ----------------------------
