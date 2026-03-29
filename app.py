@@ -475,7 +475,7 @@ with tab2:
     df.columns = df.columns.str.strip().str.lower()
     
     # ✅ FIX COLUMN NAME HERE
-    if "time_stamp" in df.columns and "gender" in df.columns:
+    if "scan_date" in df.columns and "gender" in df.columns:
     
         # ✅ USE CORRECT COLUMN
         df["scan_date"] = pd.to_datetime(df["scan_date"], errors="coerce")
@@ -543,12 +543,12 @@ with tab2:
                 points = selected["selection"]["points"]
 
                 if len(points) > 0:
-                clicked_date = points[0]["x"]
+                    clicked_date = points[0]["x"]
 
-                # ✅ FORCE SAME FORMAT AS scan_date
-                clicked_date = pd.to_datetime(clicked_date).normalize()
+                    # ✅ FORCE SAME FORMAT AS scan_date
+                    clicked_date = pd.to_datetime(clicked_date).normalize()
 
-                st.session_state.selected_date = clicked_date
+                    st.session_state.selected_date = clicked_date
     
         # -----------------------------
         # TABLE
