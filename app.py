@@ -248,7 +248,7 @@ def plot_line(df):
 tab1, tab2, tab3 = st.tabs([
     "School Demographics",
     "Attendance",
-    "Registered Leaners"
+    "Registered Learners"
 ])
 
 # ----------------------------
@@ -354,7 +354,7 @@ with tab1:
             import matplotlib.pyplot as plt
             
             plt.rcParams.update({
-                "font.size": 8
+                "font.size": 12
             })
             
             fig, ax = plt.subplots(figsize=(12,4))    
@@ -370,12 +370,12 @@ with tab1:
     
             # ✅ LABELS INSIDE BARS
             for container in ax.containers:
-                ax.bar_label(container, label_type='center', fontsize=7)
+                ax.bar_label(container, label_type='center', fontsize=12)
     
             # ✅ TOTAL LABELS ON TOP
             for i, year in enumerate(pivot.index):
                 total = pivot.loc[year].sum()
-                ax.text(i, total, str(int(total)), ha='center', va='bottom', fontsize=8)
+                ax.text(i, total, str(int(total)), ha='center', va='bottom', fontsize=12)
     
             # Clean axes
             ax.set_title("")
@@ -438,12 +438,12 @@ with tab1:
     
             # ✅ LABELS INSIDE BARS
             for container in ax.containers:
-                ax.bar_label(container, label_type='center', fontsize=7)
+                ax.bar_label(container, label_type='center', fontsize=12)
     
             # ✅ TOTAL LABELS ON TOP
             for i, year in enumerate(pivot.index):
                 total = pivot.loc[year].sum()
-                ax.text(i, total, str(int(total)), ha='center', va='bottom', fontsize=8)
+                ax.text(i, total, str(int(total)), ha='center', va='bottom', fontsize=12)
     
             # ✅ CLEAN AXES
             ax.set_title("")
