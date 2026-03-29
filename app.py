@@ -516,16 +516,16 @@ with tab2:
             use_container_width=True,
             key="attendance_chart",
             on_select="rerun"
-        )
+    )
     
         # -----------------------------
         # HANDLE CLICK EVENT
         # -----------------------------
-        if selected and "selection" in selected:
-            points = selected["selection"]["points"]
-            if points:
-                clicked_date = points[0]["x"]
-                st.session_state.selected_date = clicked_date
+    if selected and "selection" in selected:
+        points = selected["selection"]["points"]
+        if points:
+            clicked_date = points[0]["x"]
+            st.session_state.selected_date = clicked_date
 
     # -----------------------------
     # FILTER TABLE
@@ -540,7 +540,7 @@ with tab2:
 
     st.dataframe(filtered_df, use_container_width=True)
 
-    else:
+else:
     st.warning("Required columns not found.")
 
 # ----------------------------
