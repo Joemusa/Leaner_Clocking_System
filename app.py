@@ -561,7 +561,17 @@ with tab2:
     # -----------------------------
     # TABLE
     # -----------------------------
-    st.subheader("Learner Tracker Data")
+
+    # -----------------------------
+    # GENDER FILTER
+    # -----------------------------
+    genders = ["All"] + sorted(df["gender"].dropna().unique().tolist())
+    
+    selected_gender_filter = st.selectbox(
+        "Filter by Gender",
+        genders
+    )
+        st.subheader("Learner Tracker Data")
     
     if st.session_state.get("selected_date"):
     
