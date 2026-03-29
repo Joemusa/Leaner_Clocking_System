@@ -682,7 +682,7 @@ with tab4:
     # -----------------------------
     present_df = att_df[
         (att_df["scan_date"].dt.normalize() == selected_date) &
-        (att_df["direction"] == "IN")
+        (att_df["direction"].isin(["IN", "LATE"])
     ]
     
     present_ids = present_df["student_id"].drop_duplicates()
@@ -697,7 +697,7 @@ with tab4:
     # -----------------------------
     # TIMES ABSENT (ALL DAYS)
     # -----------------------------
-    attendance_all = att_df[att_df["direction"] == "IN"]
+    attendance_all = att_df[att_df["direction"].isin(["IN", "LATE"])
     
     present_counts = (
         attendance_all.groupby("student_id")["scan_date"]
