@@ -470,7 +470,7 @@ with tab2:
     # -----------------------------
     # LOAD DATA FROM LEARNER TRACKER
     # -----------------------------
-    df = learner_tracker_df.copy()
+    df = learner_df.copy()
     
     # Clean columns
     df.columns = df.columns.str.strip().str.lower()
