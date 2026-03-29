@@ -530,7 +530,7 @@ with tab2:
 
         #with colA:
             #if s#t.button("🔄 Refresh"):
-                st.session_state.selected_date = None
+                #st.session_state.selected_date = None
                 #st.session_state.selected_gender = None
 
         # -----------------------------
