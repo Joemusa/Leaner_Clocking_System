@@ -329,7 +329,7 @@ with tab1:
 
     col4, col5 = st.columns(2)
     
-   with col4:
+    with col4:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Yearly Attendance (Male vs Female)")
     
