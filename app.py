@@ -798,7 +798,7 @@ if len(absent_names) > 0:
         
         def convert_df_to_excel(df):
             output = io.BytesIO()
-            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer::
                 df.to_excel(writer, index=False, sheet_name='Absent Learners')
             return output.getvalue()
         
