@@ -747,20 +747,14 @@ with tab4:
     # ✅ EXPORT TO EXCEL (ADDED)
     # -----------------------------
     import io
-    
-    def convert_df_to_excel(df):
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-            df.to_excel(writer, index=False, sheet_name='Absent Learners')
-        return output.getvalue()
-    
-    excel_data = convert_df_to_excel(display_df)
+       
+    csv_data = convert_df_to_csv(display_df)
     
     st.download_button(
         label="📥 Export Absent Learners to Excel",
-        data=excel_data,
-        file_name="absent_learners.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        data=csv_data,
+        file_name="absent_learners.csv",
+        mime="text/csv""
     )
     
     # -----------------------------
