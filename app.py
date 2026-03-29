@@ -475,7 +475,7 @@ with tab2:
     # Clean columns
     df.columns = df.columns.str.strip().str.lower()
     
-    if "timestamp" in df.columns and "gender" in df.columns:
+    if "scan_date" in df.columns and "gender" in df.columns:
     
         df["timestamp"] = pd.to_datetime(df["scan_date"], errors="coerce")
         df["date"] = df["scan_date"].dt.date
@@ -487,7 +487,7 @@ with tab2:
         # AGGREGATE
         # -----------------------------
         attendance = (
-            df.groupby(["date", "gender"])
+            df.groupby(["scan_date", "gender"])
             .size()
             .reset_index(name="count")
         )
