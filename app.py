@@ -468,17 +468,18 @@ with tab1:
 with tab2:
 
     # -----------------------------
-    # LOAD DATA FROM LEARNER TRACKER
+    # LOAD DATA
     # -----------------------------
     df = learner_df.copy()
     
-    # Clean columns
     df.columns = df.columns.str.strip().str.lower()
     
-    if "scan_date" in df.columns and "gender" in df.columns:
+    # ✅ FIX COLUMN NAME HERE
+    if "time_stamp" in df.columns and "gender" in df.columns:
     
-        df["timestamp"] = pd.to_datetime(df["scan_date"], errors="coerce")
-        df["date"] = df["scan_date"].dt.date
+        # ✅ USE CORRECT COLUMN
+        df["time_stamp"] = pd.to_datetime(df["time_stamp"], errors="coerce")
+        df["date"] = df["time_stamp"].dt.date
         df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
     
         df = df.dropna(subset=["date", "gender"])
@@ -487,10 +488,13 @@ with tab2:
         # AGGREGATE
         # -----------------------------
         attendance = (
-            df.groupby(["scan_date", "gender"])
+            df.groupby(["date", "gender"])
             .size()
             .reset_index(name="count")
         )
+    
+        # ✅ CRITICAL FIX FOR PLOTLY
+        attendance["date"] = pd.to_datetime(attendance["date"])
     
         # -----------------------------
         # SESSION STATE
@@ -506,43 +510,45 @@ with tab2:
         with colA:
             if st.button("🔄 Refresh"):
                 st.session_state.selected_date = None
-    st.write("Attendance columns:", attendance.columns)
-    st.write("Attendance preview:", attendance.head())
+    
         # -----------------------------
         # BAR CHART
         # -----------------------------
-        fig = px.bar(
-            attendance,
-            x="date",
-            y="count",
-            color="gender",
-            barmode="group",
-            text="count",
-            title="Daily Attendance by Gender"
-        )
+        if not attendance.empty:
     
-        fig.update_traces(textposition="outside")
+            fig = px.bar(
+                attendance,
+                x="date",
+                y="count",
+                color="gender",
+                barmode="group",
+                text="count",
+                title="Daily Attendance by Gender"
+            )
     
-        fig.update_layout(height=400)
+            fig.update_traces(textposition="outside")
     
-        selected = st.plotly_chart(
-            fig,
-            use_container_width=True,
-            key="attendance_chart",
-            on_select="rerun"
-        )
+            selected = st.plotly_chart(
+                fig,
+                use_container_width=True,
+                key="attendance_chart",
+                on_select="rerun"
+            )
+    
+            # -----------------------------
+            # HANDLE CLICK
+            # -----------------------------
+            if selected and "selection" in selected:
+                points = selected["selection"]["points"]
+                if points:
+                    clicked_date = points[0]["x"]
+                    st.session_state.selected_date = clicked_date
+    
+        else:
+            st.warning("No attendance data available.")
     
         # -----------------------------
-        # HANDLE CLICK
-        # -----------------------------
-        if selected and "selection" in selected:
-            points = selected["selection"]["points"]
-            if points:
-                clicked_date = points[0]["x"]
-                st.session_state.selected_date = clicked_date
-    
-        # -----------------------------
-        # TABLE (LEARNER TRACKER)
+        # TABLE
         # -----------------------------
         st.subheader("Learner Tracker Data")
     
@@ -557,7 +563,9 @@ with tab2:
         st.dataframe(filtered_df, use_container_width=True)
     
     else:
-        st.warning("scan_date or gender column not found in Learner Tracker.")
+        st.warning("time_stamp or gender column not found.")
+
+    
 
    
     
