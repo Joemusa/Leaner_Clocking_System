@@ -340,7 +340,7 @@ with tab1:
     
             df = filtered_df.copy()
     
-            df["scan_date"] = pd.to_datetime(df["scan_date"], errors="coerce")
+            df["scan_date"] = pd.to_datetime(df["scan_date"], errors="coerce").dt.date
             df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
     
             df = df.dropna(subset=["scan_date", "gender"])
