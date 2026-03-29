@@ -4,6 +4,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import plotly.express as px
 
 
 import streamlit as st
