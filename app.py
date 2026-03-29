@@ -748,7 +748,7 @@ with tab4:
     # -----------------------------
     import io
        
-    csv_data = convert_df_to_csv(display_df)
+    csv_data = display_df.to_csv(index=False).encode('utf-8')
     
     st.download_button(
         label="📥 Export Absent Learners to Excel",
