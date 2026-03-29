@@ -327,7 +327,7 @@ with tab1:
             # Plot
             plot_bar(grade_counts, "Grade")
 
-st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
     with col2:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Learners by Gender")
