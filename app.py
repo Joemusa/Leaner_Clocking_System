@@ -393,40 +393,32 @@ with tab1:
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-     with col5:
-         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-         st.subheader("Yearly Attendance (Male vs Female)")
+    with col5:
+        st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+        st.subheader("Yearly Attendance (Male vs Female)")
         
-         # Clean column names
-         reg_df.columns = reg_df.columns.str.strip().str.lower()
-        
-            if "timestamp" in reg_df.columns and "gender" in reg_df.columns:
-        
-                df = reg_df.copy()
-        
-                df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
-                df["year"] = df["timestamp"].dt.year
-                df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
-        
-                df = df.dropna(subset=["year", "gender"])
-        
-                pivot = df.groupby(["year", "gender"]).size().unstack(fill_value=0).sort_index()
-    
-                # ✅ FIX YEAR FORMAT HERE
-                pivot.index = pivot.index.astype(int).astype(str)
-                
-                import matplotlib.pyplot as plt
-                
-                plt.rcParams.update({
-                    "font.size": 8
+        # Clean column names
+        reg_df.columns = reg_df.columns.str.strip().str.lower()
+        if "timestamp" in reg_df.columns and "gender" in reg_df.columns:
+            df = reg_df.copy()
+            df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+            df["year"] = df["timestamp"].dt.year
+            df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
+            df = df.dropna(subset=["year", "gender"])
+            pivot = df.groupby(["year", "gender"]).size().unstack(fill_value=0).sort_index()
+            # ✅ FIX YEAR FORMAT HERE
+            pivot.index = pivot.index.astype(int).astype(str)
+            import matplotlib.pyplot as plt
+            plt.rcParams.update({
+                "font.size": 8
                 })
                 
-                fig, ax = plt.subplots(figsize=(12,4))    
+            fig, ax = plt.subplots(figsize=(12,4))    
                 
-                pivot.plot(kind="bar", stacked=True, ax=ax)
+            pivot.plot(kind="bar", stacked=True, ax=ax)
                 
-                # ✅ FORCE CLEAN X-AXIS LABELS
-                ax.set_xticklabels(pivot.index, rotation=0)
+            # ✅ FORCE CLEAN X-AXIS LABELS
+            ax.set_xticklabels(pivot.index, rotation=0)
         
                 # ✅ REMOVE BORDER (spines)
                 for spine in ax.spines.values():
