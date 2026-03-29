@@ -468,10 +468,11 @@ with tab1:
 with tab2:
 
     # -----------------------------
-    # LOAD DATA
+    # LOAD DATA FROM LEARNER TRACKER
     # -----------------------------
-    df = reg_df.copy()
+    df = learner_tracker_df.copy()
     
+    # Clean columns
     df.columns = df.columns.str.strip().str.lower()
     
     if "timestamp" in df.columns and "gender" in df.columns:
@@ -498,7 +499,7 @@ with tab2:
             st.session_state.selected_date = None
     
         # -----------------------------
-        # REFRESH BUTTON (CLEAR FILTER)
+        # REFRESH BUTTON
         # -----------------------------
         colA, colB = st.columns([1, 5])
     
@@ -515,18 +516,13 @@ with tab2:
             y="count",
             color="gender",
             barmode="group",
-            text="count",  # ✅ DATA LABELS
+            text="count",
             title="Daily Attendance by Gender"
         )
     
-        # Make labels look nice
         fig.update_traces(textposition="outside")
     
-        fig.update_layout(
-            height=400,
-            uniformtext_minsize=8,
-            uniformtext_mode='hide'
-        )
+        fig.update_layout(height=400)
     
         selected = st.plotly_chart(
             fig,
@@ -545,9 +541,9 @@ with tab2:
                 st.session_state.selected_date = clicked_date
     
         # -----------------------------
-        # TABLE
+        # TABLE (LEARNER TRACKER)
         # -----------------------------
-        st.subheader("Learner Tracker")
+        st.subheader("Learner Tracker Data")
     
         if st.session_state.selected_date:
             filtered_df = df[
@@ -560,7 +556,9 @@ with tab2:
         st.dataframe(filtered_df, use_container_width=True)
     
     else:
-        st.warning("Required columns not found.")
+        st.warning("Timestamp or Gender column not found in Learner Tracker.")
+
+   
     
 
 # ----------------------------
