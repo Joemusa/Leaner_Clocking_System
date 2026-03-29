@@ -659,7 +659,7 @@ with tab4:
     # PRESENT LEARNERS (IN ONLY)
     # -----------------------------
     present_df = att_df[
-        (att_df["scan_date"].dt.normalize() == selected_dates) &
+        (att_df["scan_date"].dt.normalize() == selected_date) &
         (att_df["direction"] == "IN")
     ]
 
