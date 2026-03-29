@@ -18,9 +18,9 @@ USER_CREDENTIALS = {
 }
 
 def login():
-st.title("🔐 Scholar System Login")
-username = st.text_input("Username")
-password = st.text_input("Password", type="password")
+    st.title("🔐 Scholar System Login")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
 
 ```
 if st.button("Login"):
