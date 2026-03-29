@@ -563,7 +563,12 @@ with tab2:
         else:
             filtered_df = df
     
-        st.dataframe(filtered_df, use_container_width=True)
+        st.dataframe(
+            filtered_df[
+                ["studentid", "scan_date", "time", "direction", "grade", "gender"]
+            ],
+            use_container_width=True
+        )
     
     else:
         st.warning("time_stamp or gender column not found.")
