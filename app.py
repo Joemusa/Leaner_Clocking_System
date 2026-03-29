@@ -801,7 +801,7 @@ if len(absent_names) > 0:
 
             import matplotlib.pyplot as plt
             
-            fig, ax = plt.subplots(figsize=(8, 4))
+            fig, ax = plt.subplots(figsize=(16, 4))
             
             # Lollipop
             ax.vlines(absent_dates, ymin=0, ymax=1)
