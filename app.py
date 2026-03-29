@@ -535,55 +535,61 @@ with tab2:
                 on_select="rerun"
             )
     
-            # -----------------------------
-            # HANDLE CLICK
-            # -----------------------------
-        
-        if selected and selected.get("selection"):
-        
-            points = selected["selection"]["points"]
-        
-            if len(points) > 0:
-        
-                clicked_date = pd.to_datetime(points[0]["x"]).normalize()
-        
-                # ✅ GET GENDER FROM CLICK
-                clicked_gender = points[0]["legendgroup"]
-        
-                # Save both
-                st.session_state.selected_date = clicked_date
-                st.session_state.selected_gender = clicked_gender
+    # -----------------------------
+    # HANDLE CLICK
+    # -----------------------------
+    if selected and selected.get("selection"):
     
-        # -----------------------------
-        # TABLE
-        # -----------------------------
-        st.subheader("Learner Tracker Data")
+        points = selected["selection"]["points"]
     
-        if st.session_state.selected_date:
-
-            selected_date = pd.to_datetime(st.session_state.selected_date).normalize()
-
-            filtered_df = df[
-                df["scan_date"].dt.normalize() == selected_date
+        if len(points) > 0:
+    
+            clicked_date = pd.to_datetime(points[0]["x"]).normalize()
+    
+            # ✅ SAFER WAY TO GET GENDER
+            clicked_gender = points[0].get("legendgroup")
+    
+            # Fallback (important)
+            if not clicked_gender:
+                clicked_gender = points[0].get("label")
+    
+            # Save both
+            st.session_state.selected_date = clicked_date
+            st.session_state.selected_gender = clicked_gender
+    
+    
+    # -----------------------------
+    # TABLE
+    # -----------------------------
+    st.subheader("Learner Tracker Data")
+    
+    if st.session_state.get("selected_date"):
+    
+        selected_date = pd.to_datetime(st.session_state.selected_date).normalize()
+    
+        filtered_df = df[
+            df["scan_date"].dt.normalize() == selected_date
+        ]
+    
+        # ✅ APPLY GENDER FILTER (THIS WAS MISSING)
+        if st.session_state.get("selected_gender"):
+            filtered_df = filtered_df[
+                filtered_df["gender"].str.lower() == st.session_state.selected_gender.lower()
             ]
-
-            st.info(f"Filtered for date: {selected_date}")
-
-        else:
-            filtered_df = df
-
-        st.dataframe(
-            filtered_df[
-                ["studentid", "scan_date", "time", "direction", "grade", "gender"]
-            ],
-            use_container_width=True
+    
+        st.info(
+            f"Filtered for date: {selected_date.date()} | Gender: {st.session_state.get('selected_gender')}"
         )
-
     
-
-   
+    else:
+        filtered_df = df
     
-
+    st.dataframe(
+        filtered_df[
+            ["studentid", "scan_date", "time", "direction", "grade", "gender"]
+        ],
+        use_container_width=True
+    )
 # ----------------------------
 # TABLES (UNCHANGED)
 # ----------------------------
