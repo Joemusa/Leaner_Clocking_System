@@ -282,7 +282,7 @@ with tab1:
     with k1:
         st.markdown(f"""
         <div class="kpi-box">
-            <div class="kpi-title">Total Registered Leaners</div>
+            <div class="kpi-title">Total Registered Learners</div>
             <div class="kpi-value">{total_registered}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -310,12 +310,24 @@ with tab1:
     with col1:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Learners by Grade")
+        
         if "Grade" in reg_df.columns:
             df = reg_df.copy()
             df["Grade"] = df["Grade"].astype(str).str.strip()
-            plot_bar(df["Grade"].value_counts().sort_index(), "Grade")
-        st.markdown('</div>', unsafe_allow_html=True)
+        
+            # ✅ DEFINE CORRECT ORDER
+            grade_order = ["Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"]
+        
+            # Count values
+            grade_counts = df["Grade"].value_counts()
+        
+            # Reindex to enforce order
+            grade_counts = grade_counts.reindex(grade_order, fill_value=0)
+        
+            # Plot
+            plot_bar(grade_counts, "Grade")
 
+st.markdown('</div>', unsafe_allow_html=True)
     with col2:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Learners by Gender")
