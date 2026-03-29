@@ -791,28 +791,7 @@ if len(absent_names) > 0:
         present_dates = learner_attendance["scan_date"].dt.normalize().unique()
         present_dates = pd.to_datetime(present_dates)
 
-        # -----------------------------
-        # EXPORT ABSENT TABLE
-        # -----------------------------
-        import io
-
-        def convert_df_to_csv(df):
-            return df.to_csv(index=False).encode('utf-8')
-        
-        st.dataframe(
-            absent_df[
-                ["student_id", "child's name", "grade", "gender", "times_absent"]
-            ],
-            use_container_width=True
-        )
-        
-        st.download_button(
-            label="📥 Export Absent Learners",
-            data=csv_data,
-            file_name="absent_learners.csv",
-            mime="text/csv"
-        )
-
+ 
         # -----------------------------
         # ABSENT DAYS = ALL - PRESENT
         # -----------------------------
