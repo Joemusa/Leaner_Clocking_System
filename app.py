@@ -792,6 +792,26 @@ if len(absent_names) > 0:
         present_dates = pd.to_datetime(present_dates)
 
         # -----------------------------
+        # EXPORT ABSENT TABLE
+        # -----------------------------
+        import io
+        
+        def convert_df_to_excel(df):
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False, sheet_name='Absent Learners')
+            return output.getvalue()
+        
+        excel_data = convert_df_to_excel(absent_df)
+        
+        st.download_button(
+            label="📥 Export Absent Learners to Excel",
+            data=excel_data,
+            file_name="absent_learners.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        # -----------------------------
         # ABSENT DAYS = ALL - PRESENT
         # -----------------------------
         absent_dates = sorted(set(all_dates) - set(present_dates))
