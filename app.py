@@ -538,14 +538,17 @@ with tab2:
             # -----------------------------
             # HANDLE CLICK
             # -----------------------------
-            if selected and "selection" in selected:
+            if selected and selected.get("selection"):
+
                 points = selected["selection"]["points"]
-                if points:
-                    clicked_date = points[0]["x"]
-                    st.session_state.selected_date = clicked_date
-    
-        else:
-            st.warning("No attendance data available.")
+
+                if len(points) > 0:
+                clicked_date = points[0]["x"]
+
+                # ✅ FORCE SAME FORMAT AS scan_date
+                clicked_date = pd.to_datetime(clicked_date).normalize()
+
+                st.session_state.selected_date = clicked_date
     
         # -----------------------------
         # TABLE
