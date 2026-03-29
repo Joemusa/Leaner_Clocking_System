@@ -477,8 +477,8 @@ with tab2:
     
     if "timestamp" in df.columns and "gender" in df.columns:
     
-        df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
-        df["date"] = df["timestamp"].dt.date
+        df["timestamp"] = pd.to_datetime(df["scan_date"], errors="coerce")
+        df["date"] = df["scan_date"].dt.date
         df["gender"] = df["gender"].astype(str).str.strip().str.capitalize()
     
         df = df.dropna(subset=["date", "gender"])
@@ -556,7 +556,7 @@ with tab2:
         st.dataframe(filtered_df, use_container_width=True)
     
     else:
-        st.warning("Timestamp or Gender column not found in Learner Tracker.")
+        st.warning("scan_date or gender column not found in Learner Tracker.")
 
    
     
