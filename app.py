@@ -817,6 +817,9 @@ with tab4:
                 import matplotlib.dates as mdates
                 
                 fig, ax = plt.subplots(figsize=(20, 4))
+                plt.rcParams.update({
+                "font.size": 16   # 🔁 change this (e.g. 10, 14, 16)
+                })
                 
                 ax.vlines(absent_dates, ymin=0, ymax=1)
                 ax.scatter(absent_dates, [1]*len(absent_dates), s=100)
