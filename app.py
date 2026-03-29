@@ -355,7 +355,7 @@ with tab1:
                 "font.size": 8  # smaller consistent font
             })
     
-            fig, ax = plt.subplots(figsize=(6,4))
+            fig, ax = plt.subplots(figsize=(3,4))
     
             pivot.plot(kind="bar", stacked=True, ax=ax)
     
