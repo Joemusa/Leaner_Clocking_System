@@ -639,75 +639,100 @@ with tab4:
     # -----------------------------
     reg_df = reg_df.copy()
     att_df = learner_df.copy()
-
+    
     # Clean columns
     reg_df.columns = reg_df.columns.str.strip().str.lower()
     att_df.columns = att_df.columns.str.strip().str.lower()
-
+    
     # -----------------------------
-    # CLEAN DATA
+    # CLEAN DATA (CRITICAL)
     # -----------------------------
     reg_df["student_id"] = reg_df["student_id"].astype(str).str.strip()
     att_df["student_id"] = att_df["student_id"].astype(str).str.strip()
-
+    
+    # Clean direction (VERY IMPORTANT)
+    att_df["direction"] = att_df["direction"].astype(str).str.strip().str.upper()
+    
+    # Fix dates
     att_df["scan_date"] = pd.to_datetime(att_df["scan_date"], errors="coerce")
-
+    
     # -----------------------------
-    # REMOVE DUPLICATES (CRITICAL)
+    # REMOVE DUPLICATES
     # -----------------------------
     reg_df = reg_df.drop_duplicates(subset=["student_id"])
-
+    
     # -----------------------------
     # DATE FILTER
     # -----------------------------
     selected_date = st.date_input("Select Date")
     selected_date = pd.to_datetime(selected_date).normalize()
-
+    
     # -----------------------------
-    # PRESENT LEARNERS (UNIQUE + IN ONLY)
+    # PRESENT LEARNERS (IN ONLY)
     # -----------------------------
     present_df = att_df[
         (att_df["scan_date"].dt.normalize() == selected_date) &
         (att_df["direction"] == "IN")
     ]
-
-    # ✅ KEEP UNIQUE STUDENTS ONLY
+    
     present_ids = present_df["student_id"].drop_duplicates()
-
+    
+    # 🔍 DEBUG (REMOVE LATER)
+    st.write("Present IDs:", present_ids)
+    
     # -----------------------------
     # ABSENT LEARNERS
     # -----------------------------
     absent_df = reg_df[
         ~reg_df["student_id"].isin(present_ids)
-    ]
-
+    ].copy()
+    
     # -----------------------------
-    # VALIDATION (VERY IMPORTANT)
+    # TIMES ABSENT (ALL DAYS)
+    # -----------------------------
+    attendance_all = att_df[att_df["direction"] == "IN"]
+    
+    present_counts = (
+        attendance_all.groupby("student_id")["scan_date"]
+        .nunique()
+        .reset_index(name="days_present")
+    )
+    
+    all_dates = att_df["scan_date"].dt.normalize().dropna().unique()
+    total_days = len(all_dates)
+    
+    absent_summary = reg_df.merge(present_counts, on="student_id", how="left")
+    absent_summary["days_present"] = absent_summary["days_present"].fillna(0)
+    absent_summary["times_absent"] = total_days - absent_summary["days_present"]
+    
+    absent_df = absent_df.merge(
+        absent_summary[["student_id", "times_absent"]],
+        on="student_id",
+        how="left"
+    )
+    
+    # -----------------------------
+    # METRICS
     # -----------------------------
     total_registered = reg_df["student_id"].nunique()
     total_present = present_ids.nunique()
     total_absent = absent_df["student_id"].nunique()
-
-    # Safety check
-    if total_absent > total_registered:
-        st.error("Data issue detected: Absentees exceed registered learners.")
-    else:
-        st.success("Data integrity check passed ✅")
-
-    # -----------------------------
-    # DISPLAY
-    # -----------------------------
+    
     st.info(f"Date: {selected_date.date()}")
-
+    
     col1, col2, col3 = st.columns(3)
     col1.metric("Registered", total_registered)
     col2.metric("Present", total_present)
     col3.metric("Absent", total_absent)
-
-    # ✅ SHOW UNIQUE ABSENTEES ONLY
+    
+    # -----------------------------
+    # FINAL TABLE
+    # -----------------------------
     absent_df = absent_df.drop_duplicates(subset=["student_id"])
-
+    
     st.dataframe(
-        absent_df,
+        absent_df[
+            ["student_id", "child's name", "grade", "gender", "times_absent"]
+        ],
         use_container_width=True
     )
