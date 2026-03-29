@@ -662,18 +662,18 @@ with tab4:
         (att_df["direction"] == "IN")   # ✅ Only count IN
     ]
 
-    present_ids = present_df["studentid"].dropna().unique()
+    present_ids = present_df["student_id"].dropna().unique()
 
     # -----------------------------
     # GET ALL REGISTERED LEARNERS
     # -----------------------------
-    registered_ids = reg_df["studentid"].dropna().unique()
+    registered_ids = reg_df["student_id"].dropna().unique()
 
     # -----------------------------
     # FIND ABSENT LEARNERS
     # -----------------------------
     absent_df = reg_df[
-        ~reg_df["studentid"].isin(present_ids)
+        ~reg_df["student_id"].isin(present_ids)
     ]
 
     # -----------------------------
