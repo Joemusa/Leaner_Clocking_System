@@ -245,10 +245,11 @@ def plot_line(df):
 # ----------------------------
 # TABS (UNCHANGED)
 # ----------------------------
-tab1, tab2, tab3 = st.tabs([
+tab1, tab2, tab3, tab4 = st.tabs([
     "School Demographics",
     "Attendance",
-    "Registered Learners"
+    "Registered Learners",
+    "Absent Learners"
 ])
 
 # ----------------------------
@@ -628,3 +629,63 @@ with tab2:
 
 with tab3:
     st.dataframe(reg_df, use_container_width=True)
+
+with tab4:
+
+    st.subheader("Absent Learners")
+
+    # -----------------------------
+    # LOAD DATA
+    # -----------------------------
+    reg_df = registration_df.copy()
+    att_df = learner_df.copy()
+
+    # Clean columns
+    reg_df.columns = reg_df.columns.str.strip().str.lower()
+    att_df.columns = att_df.columns.str.strip().str.lower()
+
+    # Ensure correct types
+    att_df["scan_date"] = pd.to_datetime(att_df["scan_date"], errors="coerce")
+
+    # -----------------------------
+    # DATE FILTER (VERY IMPORTANT)
+    # -----------------------------
+    selected_date = st.date_input("Select Date")
+
+    selected_date = pd.to_datetime(selected_date).normalize()
+
+    # -----------------------------
+    # GET PRESENT LEARNERS (IN ONLY)
+    # -----------------------------
+    present_df = att_df[
+        (att_df["scan_date"].dt.normalize() == selected_date) &
+        (att_df["direction"] == "IN")   # ✅ Only count IN
+    ]
+
+    present_ids = present_df["studentid"].dropna().unique()
+
+    # -----------------------------
+    # GET ALL REGISTERED LEARNERS
+    # -----------------------------
+    registered_ids = reg_df["studentid"].dropna().unique()
+
+    # -----------------------------
+    # FIND ABSENT LEARNERS
+    # -----------------------------
+    absent_df = reg_df[
+        ~reg_df["studentid"].isin(present_ids)
+    ]
+
+    # -----------------------------
+    # DISPLAY RESULTS
+    # -----------------------------
+    st.info(f"Date: {selected_date.date()}")
+
+    st.write(f"Total Registered: {len(registered_ids)}")
+    st.write(f"Present: {len(present_ids)}")
+    st.write(f"Absent: {len(absent_df)}")
+
+    st.dataframe(
+        absent_df,
+        use_container_width=True
+    )
