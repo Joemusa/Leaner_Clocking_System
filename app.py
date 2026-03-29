@@ -831,5 +831,5 @@ if len(absent_names) > 0:
         else:
             st.success("No absences for this learner 🎉")
 
-else:
-    st.info("No absent learners for selected date.")
+#else:
+    #st.info("No absent learners for selected date.")
