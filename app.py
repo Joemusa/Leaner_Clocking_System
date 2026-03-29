@@ -528,10 +528,10 @@ with tab2:
         # -----------------------------
         colA, colB = st.columns([1, 5])
 
-        with colA:
-            if st.button("🔄 Refresh"):
+        #with colA:
+            #if s#t.button("🔄 Refresh"):
                 st.session_state.selected_date = None
-                st.session_state.selected_gender = None
+                #st.session_state.selected_gender = None
 
         # -----------------------------
         # BAR CHART
