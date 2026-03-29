@@ -352,7 +352,7 @@ with tab1:
             attendance_trend,
             x="date",
             y="count",
-            color="gender",
+            color="Gender",
             title="Daily Attendance by Gender"
             )
 
