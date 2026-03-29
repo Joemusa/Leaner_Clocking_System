@@ -556,22 +556,24 @@ with tab2:
         st.subheader("Learner Tracker Data")
     
         if st.session_state.selected_date:
+
+            selected_date = pd.to_datetime(st.session_state.selected_date).normalize()
+
             filtered_df = df[
-                df["date"] == pd.to_datetime(st.session_state.selected_date).date()
+                df["scan_date"].dt.normalize() == selected_date
             ]
-            st.info(f"Filtered for date: {st.session_state.selected_date}")
+
+            st.info(f"Filtered for date: {selected_date}")
+
         else:
             filtered_df = df
-    
+
         st.dataframe(
             filtered_df[
                 ["studentid", "scan_date", "time", "direction", "grade", "gender"]
             ],
             use_container_width=True
         )
-    
-    else:
-        st.warning("time_stamp or gender column not found.")
 
     
 
