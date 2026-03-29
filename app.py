@@ -312,8 +312,10 @@ with tab1:
     with col2:
         st.markdown('<div class="chart-box">', unsafe_allow_html=True)
         st.subheader("Learners by Gender")
-        if "Gender" in filtered_df.columns:
-            plot_bar(filtered_df["Gender"].value_counts(), "Gender")
+        if "Gender" in reg_df.columns:
+            df = reg_df.copy()
+            df["Gender"] = df["Gender"].astype(str).str.strip()
+            plot_bar(reg_df["Gender"].value_counts(), "Gender")
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col3:
