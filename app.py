@@ -419,14 +419,13 @@ with tab1:
                 
             # ✅ FORCE CLEAN X-AXIS LABELS
             ax.set_xticklabels(pivot.index, rotation=0)
-        
-                # ✅ REMOVE BORDER (spines)
-                for spine in ax.spines.values():
-                    spine.set_visible(False)
+            # ✅ REMOVE BORDER (spines)
+            for spine in ax.spines.values():
+                spine.set_visible(False)
         
                 # ✅ LABELS INSIDE BARS
                 for container in ax.containers:
-                    ax.bar_label(container, label_type='center', fontsize=7)
+                ax.bar_label(container, label_type='center', fontsize=7)
         
                 # ✅ TOTAL LABELS ON TOP
                 for i, year in enumerate(pivot.index):
