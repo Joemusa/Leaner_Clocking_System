@@ -829,12 +829,13 @@ with tab4:
                 
                 ax.grid(False)
                 ax.xaxis.set_major_formatter(mdates.DateFormatter('%d %b %Y'))
+                ax.tick_params(axis='x', labelsize=10)
                 plt.xticks(rotation=0)
                 
                 ax.set_ylim(0, 1.2)
                 ax.set_yticks([])
-                ax.set_title(f"Absence Days - {selected_name}")
-                ax.set_xlabel("Date")
+                ax.set_title(f"Absence Days - {selected_name}", fontsize = 14)
+                ax.set_xlabel("Date", fontsize = 12)
                 
                 st.pyplot(fig)
             else:
