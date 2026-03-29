@@ -683,7 +683,7 @@ with tab4:
     present_df = att_df[
         (att_df["scan_date"].dt.normalize() == selected_date) &
         (att_df["direction"].isin(["IN", "LATE"])
-    ]
+        ]
     
     present_ids = present_df["student_id"].drop_duplicates()
     
