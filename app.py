@@ -424,7 +424,7 @@ with tab1:
                 "font.size": 12
             })
             
-            fig, ax = plt.subplots(figsize=(12,4))    
+            #fig, ax = plt.subplots(figsize=(12,4))    
             
             plot_stacked_bar(pivot)
             
