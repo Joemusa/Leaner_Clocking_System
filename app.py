@@ -570,6 +570,7 @@ with tab2:
                     linewidth=1,
                     showgrid=False,
                     zeroline = False,
+                    showticklabels = True,
                     tickfont=dict(size=11)
                 ),
             
