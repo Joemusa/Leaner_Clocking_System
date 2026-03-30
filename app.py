@@ -344,7 +344,7 @@ with tab1:
         """, unsafe_allow_html=True)
 
     with k2:
-        #total_records = learner_df['leaner name'].notna().sum()
+        #total_records = learner_df['learner name'].notna().sum()
 
         st.markdown(f"""
         <div class="kpi-box">
