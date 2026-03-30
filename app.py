@@ -453,7 +453,7 @@ with tab1:
             fig.patch.set_facecolor("white")
             ax.set_facecolor("white")
     
-            st.pyplot(fig)
+            #st.pyplot(fig)
     
         else:
             st.warning("Timestamp or Gender column not found.")
