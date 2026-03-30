@@ -565,13 +565,17 @@ with tab2:
             
                 # ✅ SHOW X-AXIS LINE
                 xaxis=dict(
-                    showline=True,
+                    showline=False,
                     linecolor="black",
                     linewidth=1,
                     showgrid=False,
                     zeroline = False,
                     showticklabels = True,
                     tickfont=dict(size=11)
+
+                    tickfont = dict(
+                        size = 14,
+                        color = "black"
                 ),
             
                 # ✅ CLEAN Y-AXIS
