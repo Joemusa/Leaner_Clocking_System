@@ -467,37 +467,7 @@ with tab1:
                 "font.size": 12
             })
     
-            fig, ax = plt.subplots(figsize=(12, 4))
-    
-            pivot.plot(kind="bar", stacked=True, ax=ax)
-    
-            # ✅ CLEAN X-AXIS
-            ax.set_xticklabels(pivot.index, rotation=0)
-    
-            # ✅ REMOVE BORDER
-            for spine in ax.spines.values():
-                spine.set_visible(False)
-    
-            # ✅ LABELS INSIDE BARS
-            for container in ax.containers:
-                ax.bar_label(container, label_type='center', fontsize=12)
-    
-            # ✅ TOTAL LABELS ON TOP
-            for i, year in enumerate(pivot.index):
-                total = pivot.loc[year].sum()
-                ax.text(i, total, str(int(total)), ha='center', va='bottom', fontsize=12)
-    
-            # ✅ CLEAN AXES
-            ax.set_title("")
-            ax.set_xlabel("")
-            ax.set_ylabel("")
-    
-            # ✅ WHITE BACKGROUND
-            fig.patch.set_facecolor("white")
-            ax.set_facecolor("white")
-    
-            # ✅ SHOW ONLY ONCE
-            st.pyplot(fig)
+            plot_stacked_bar(pivot)
     
         else:
             st.warning("Timestamp or Race column not found.")
