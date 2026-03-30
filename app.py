@@ -52,50 +52,18 @@ st.set_page_config(
 )
 
 # ----------------------------
-# STYLING (FIXED ONLY THIS PART)
+# GLOBAL CHART STYLE (NEW 🔥)
 # ----------------------------
-st.markdown("""
-<style>
-.block-container { padding-top: 1rem; padding-bottom: 1rem; }
+plt.rcParams.update({
+    "font.size": 11,
+    "axes.titlesize": 12,
+    "axes.labelsize": 11,
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10
+})
 
-.kpi-box {
-    border: 1px solid #333;
-    border-radius: 12px;
-    padding: 18px;
-    background-color: #1e1e1e;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.3);
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-.kpi-title {
-    font-size: 16px;
-    color: #bbbbbb;
-    margin-bottom: 8px;
-    font-weight: 600;
-}
-
-.kpi-value {
-    font-size: 28px;
-    font-weight: 700;
-    color: #ffffff;
-}
-
-.chart-box {
-    border: 1px solid #333;
-    border-radius: 12px;
-    padding: 16px;
-    background-color: #1e1e1e;
-    margin-bottom: 18px;
-}
-
-.section-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 10px;
-}
-</style>
-""", unsafe_allow_html=True)
+BAR_COLOR = "#4e79a7"
+FIG_SIZE = (8, 4.5)
 
 st.title("📊 School Attendance Dashboard")
 
