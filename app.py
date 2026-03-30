@@ -230,7 +230,7 @@ def plot_line(df):
         st.info("No data available.")
         return
 
-    fig, ax = plt.subplots(figsize=(10,4.5))
+    fig, ax = plt.subplots(figsize=(12,4.5))
 
     for col in df.columns:
         ax.plot(df.index, df[col], marker="o", label=col)
