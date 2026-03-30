@@ -612,10 +612,6 @@ with tab2:
             )
             
             # 🔥 MAKE IT FULL WIDTH CLEAN
-            st.plotly_chart(
-                fig,
-                use_container_width=True
-            )
             fig.update_traces(
                 textposition="inside",
                 textfont=dict(size=18)   # ✅ numbers on bars
