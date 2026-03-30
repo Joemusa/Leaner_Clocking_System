@@ -602,6 +602,8 @@ with tab2:
             fig.update_layout(
                 plot_bgcolor="white",
                 paper_bgcolor="white",
+                xaxis_title = None,
+                yaxis_title = None,
             
                 title=dict(
                     font=dict(size=14),
