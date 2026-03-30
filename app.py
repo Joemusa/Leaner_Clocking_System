@@ -571,14 +571,14 @@ with tab2:
                     showgrid=False,
                     zeroline = False,
                     showticklabels = True,
-                    tickfont=dict(size=14, color = "black")
+                    tickfont=dict(size=16, color = "black")
                 ),
             
                 # ✅ CLEAN Y-AXIS
                 yaxis=dict(
                     showline=False,
                     gridcolor="rgba(0,0,0,0.1)",
-                    tickfont=dict(size=11)
+                    tickfont=dict(size=16, color = "black")
                 ),
             
                 # ✅ FIX LEGEND
