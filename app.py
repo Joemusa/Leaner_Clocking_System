@@ -50,7 +50,32 @@ st.set_page_config(
     page_title="Learner Clocking Dashboard",
     layout="wide"
 )
+st.markdown("""
+<style>
+.kpi-box {
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 18px;
+    background-color: #1e1e1e;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    text-align: center;
+    margin-bottom: 10px;
+}
 
+.kpi-title {
+    font-size: 14px;
+    color: #bbbbbb;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.kpi-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+}
+</style>
+""", unsafe_allow_html=True)
 # ----------------------------
 # GLOBAL CHART STYLE (NEW 🔥)
 # ----------------------------
@@ -319,7 +344,7 @@ with tab1:
         """, unsafe_allow_html=True)
 
     with k2:
-        total_records = learner_df['leaner name'].notna().sum()
+        #total_records = learner_df['leaner name'].notna().sum()
 
         st.markdown(f"""
         <div class="kpi-box">
