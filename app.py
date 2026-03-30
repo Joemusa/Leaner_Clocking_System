@@ -1,16 +1,41 @@
+```python
 import streamlit as st
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 import plotly.express as px
 
+# -------------------------
+# LOGIN CONFIGURATION
+# -------------------------
+USER_CREDENTIALS = {
+    "admin": "1234",
+    "school": "abcd"
+}
+
+def login():
+    st.title("🔐 Scholar System Login")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        if username in USER_CREDENTIALS and USER_CREDENTIALS[username] == password:
+            st.session_state["logged_in"] = True
+            st.rerun()
+        else:
+            st.error("Invalid username")
+
+if "logged_in" not in st.session_state:
+    st.session_state["logged_in"] = False
+
+if not st.session_state["logged_in"]:
+    login()
+    st.stop()
+
 # ----------------------------
 # PAGE CONFIG
 # ----------------------------
-st.set_page_config(
-    page_title="Learner Clocking Dashboard",
-    layout="wide"
-)
+st.set_page_config(page_title="Learner Dashboard", layout="wide")
 
 st.title("📊 School Attendance Dashboard")
 
@@ -41,192 +66,107 @@ def load_data():
 
 learner_df, reg_df = load_data()
 
-# ----------------------------
-# CLEAN DATA
-# ----------------------------
 learner_df.columns = learner_df.columns.str.strip().str.lower()
 reg_df.columns = reg_df.columns.str.strip().str.lower()
 
 # ----------------------------
-# GLOBAL STYLE FUNCTION
+# SIDEBAR FILTERS (RESTORED)
+# ----------------------------
+st.sidebar.header("Filters")
+
+filtered_df = learner_df.copy()
+
+if "scan_date" in filtered_df.columns:
+    filtered_df["scan_date"] = pd.to_datetime(filtered_df["scan_date"], errors="coerce")
+
+    dates = sorted(filtered_df["scan_date"].dropna().dt.date.unique())
+    selected_dates = st.sidebar.multiselect("Select Date", dates, default=dates)
+
+    if selected_dates:
+        filtered_df = filtered_df[
+            filtered_df["scan_date"].dt.date.isin(selected_dates)
+        ]
+
+if "gender" in filtered_df.columns:
+    options = filtered_df["gender"].dropna().unique()
+    selected = st.sidebar.multiselect("Gender", options, default=options)
+    filtered_df = filtered_df[filtered_df["gender"].isin(selected)]
+
+if st.sidebar.button("Logout"):
+    st.session_state["logged_in"] = False
+    st.rerun()
+
+# ----------------------------
+# GLOBAL STYLE
 # ----------------------------
 def style_plotly(fig):
     fig.update_layout(
         plot_bgcolor="white",
         paper_bgcolor="white",
         font=dict(size=11),
-
-        title=dict(x=0.01, font=dict(size=14)),
-
+        title=dict(x=0.01),
         xaxis=dict(showgrid=False),
-        yaxis=dict(showgrid=True, gridcolor="rgba(0,0,0,0.1)"),
-
-        legend=dict(font=dict(size=10)),
-        margin=dict(l=10, r=10, t=40, b=10)
+        yaxis=dict(showgrid=True, gridcolor="rgba(0,0,0,0.1)")
     )
     return fig
 
 # ----------------------------
-# TABS
+# TABS (RESTORED)
 # ----------------------------
-tab1, tab2 = st.tabs(["Dashboard", "Attendance"])
+tab1, tab2, tab3, tab4 = st.tabs([
+    "School Demographics",
+    "Attendance",
+    "Registered Learners",
+    "Absent Learners"
+])
 
 # =========================================================
-# DASHBOARD TAB
+# TAB 1 - DEMOGRAPHICS
 # =========================================================
 with tab1:
 
     col1, col2, col3 = st.columns(3)
 
-    # ----------------------------
-    # GRADE
-    # ----------------------------
     with col1:
         st.subheader("Learners by Grade")
+        grade = reg_df["grade"].value_counts().reset_index()
+        grade.columns = ["Grade", "Count"]
 
-        grade_counts = reg_df["grade"].value_counts().reset_index()
-        grade_counts.columns = ["Grade", "Count"]
-
-        fig = px.bar(grade_counts, x="Grade", y="Count", text="Count")
-
-        fig.update_traces(
-            textposition="outside",
-            hovertemplate="<b>%{x}</b><br>Count: %{y}<extra></extra>"
-        )
-
+        fig = px.bar(grade, x="Grade", y="Count", text="Count")
+        fig.update_traces(textposition="outside")
         fig = style_plotly(fig)
         st.plotly_chart(fig, use_container_width=True)
 
-    # ----------------------------
-    # GENDER
-    # ----------------------------
     with col2:
         st.subheader("Learners by Gender")
+        gender = reg_df["gender"].value_counts().reset_index()
+        gender.columns = ["Gender", "Count"]
 
-        gender_counts = reg_df["gender"].value_counts().reset_index()
-        gender_counts.columns = ["Gender", "Count"]
-
-        fig = px.bar(
-            gender_counts,
-            x="Gender",
-            y="Count",
-            text="Count",
-            color="Gender",
-            color_discrete_map={
-                "Male": "#4e79a7",
-                "Female": "#f28e2b"
-            }
-        )
-
-        fig.update_traces(
-            textposition="outside",
-            hovertemplate="<b>%{x}</b><br>Count: %{y}<extra></extra>"
-        )
-
+        fig = px.bar(gender, x="Gender", y="Count", text="Count", color="Gender")
+        fig.update_traces(textposition="outside")
         fig = style_plotly(fig)
         st.plotly_chart(fig, use_container_width=True)
 
-    # ----------------------------
-    # AGE
-    # ----------------------------
     with col3:
         st.subheader("Age Distribution")
-
         reg_df["age"] = pd.to_numeric(reg_df["age"], errors="coerce")
 
-        age_counts = reg_df["age"].value_counts().sort_index().reset_index()
-        age_counts.columns = ["Age", "Count"]
+        age = reg_df["age"].value_counts().sort_index().reset_index()
+        age.columns = ["Age", "Count"]
 
-        fig = px.bar(age_counts, x="Age", y="Count", text="Count")
-
-        fig.update_traces(
-            textposition="outside",
-            hovertemplate="<b>%{x}</b><br>Count: %{y}<extra></extra>"
-        )
-
-        fig = style_plotly(fig)
-        st.plotly_chart(fig, use_container_width=True)
-
-    col4, col5 = st.columns(2)
-
-    # ----------------------------
-    # YEARLY ATTENDANCE
-    # ----------------------------
-    with col4:
-        st.subheader("Yearly Attendance")
-
-        df = reg_df.copy()
-        df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
-        df["year"] = df["timestamp"].dt.year
-
-        pivot = df.groupby(["year", "gender"]).size().reset_index(name="Count")
-
-        fig = px.bar(
-            pivot,
-            x="year",
-            y="Count",
-            color="gender",
-            text="Count",
-            barmode="stack",
-            color_discrete_map={
-                "Male": "#4e79a7",
-                "Female": "#f28e2b"
-            }
-        )
-
-        fig.update_traces(
-            textposition="inside",
-            hovertemplate="<b>%{x}</b><br>%{legendgroup}: %{y}<extra></extra>"
-        )
-
-        fig = style_plotly(fig)
-        st.plotly_chart(fig, use_container_width=True)
-
-    # ----------------------------
-    # RACE
-    # ----------------------------
-    with col5:
-        st.subheader("Registered by Race")
-
-        df = reg_df.copy()
-        df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
-        df["year"] = df["timestamp"].dt.year
-
-        pivot = df.groupby(["year", "race"]).size().reset_index(name="Count")
-
-        fig = px.bar(
-            pivot,
-            x="year",
-            y="Count",
-            color="race",
-            text="Count",
-            barmode="stack",
-            color_discrete_map={
-                "Black": "#4e79a7",
-                "Coloured": "#f28e2b",
-                "Indian": "#59a14f",
-                "White": "#e15759"
-            }
-        )
-
-        fig.update_traces(
-            textposition="inside",
-            hovertemplate="<b>%{x}</b><br>%{legendgroup}: %{y}<extra></extra>"
-        )
-
+        fig = px.bar(age, x="Age", y="Count", text="Count")
+        fig.update_traces(textposition="outside")
         fig = style_plotly(fig)
         st.plotly_chart(fig, use_container_width=True)
 
 # =========================================================
-# ATTENDANCE TAB
+# TAB 2 - ATTENDANCE
 # =========================================================
 with tab2:
 
-    st.subheader("Daily Attendance by Gender")
+    st.subheader("Daily Attendance")
 
-    df = learner_df.copy()
-    df["scan_date"] = pd.to_datetime(df["scan_date"], errors="coerce")
-    df["gender"] = df["gender"].astype(str).str.capitalize()
+    df = filtered_df.copy()
 
     attendance = (
         df.groupby([df["scan_date"].dt.date, "gender"])
@@ -240,18 +180,42 @@ with tab2:
         y="count",
         color="gender",
         text="count",
-        barmode="group",
-        color_discrete_map={
-            "Male": "#4e79a7",
-            "Female": "#f28e2b"
-        }
+        barmode="group"
     )
 
-    fig.update_traces(
-        textposition="outside",
-        hovertemplate="<b>%{x}</b><br>%{legendgroup}: %{y}<extra></extra>"
-    )
-
+    fig.update_traces(textposition="outside")
     fig = style_plotly(fig)
 
     st.plotly_chart(fig, use_container_width=True)
+
+# =========================================================
+# TAB 3 - TABLE
+# =========================================================
+with tab3:
+    st.dataframe(reg_df, use_container_width=True)
+
+# =========================================================
+# TAB 4 - ABSENT (RESTORED)
+# =========================================================
+with tab4:
+
+    st.subheader("Absent Learners")
+
+    reg_ids = set(reg_df["student_id"].astype(str))
+    att_ids = set(learner_df["student_id"].astype(str))
+
+    absent = reg_ids - att_ids
+
+    absent_df = reg_df[reg_df["student_id"].isin(absent)]
+
+    st.dataframe(absent_df, use_container_width=True)
+
+    csv = absent_df.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+        "Download CSV",
+        csv,
+        "absent_learners.csv",
+        "text/csv"
+    )
+```
