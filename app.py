@@ -166,10 +166,15 @@ BAR_COLOR = "#4e79a7"
 
 def style_axes(ax):
     ax.grid(axis="y", linestyle="--", alpha=0.3)
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.spines["left"].set_visible(False)
-    ax.spines["bottom"].set_visible(False)
+    ax.set_axisbelow(True)
+
+    # Remove borders
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    # Clean labels
+    ax.set_xlabel("")
+    ax.set_ylabel("")
 
 def plot_bar(series, label):
     if series.empty:
@@ -177,22 +182,36 @@ def plot_bar(series, label):
         return
 
     fig, ax = plt.subplots(figsize=FIG_SIZE)
-    bars = ax.bar(series.index.astype(str), series.values, color=BAR_COLOR)
+
+    bars = ax.bar(
+        series.index.astype(str),
+        series.values,
+        color=BAR_COLOR
+    )
 
     style_axes(ax)
+
+    # Axis labels
     ax.set_xlabel(label)
     ax.set_ylabel("Count")
 
+    # Data labels (STANDARD FORMAT)
     for bar in bars:
+        height = bar.get_height()
         ax.text(
             bar.get_x() + bar.get_width()/2,
-            bar.get_height(),
-            str(int(bar.get_height())),
-            ha='center', va='bottom'
+            height,
+            f"{int(height)}",
+            ha="center",
+            va="bottom",
+            fontsize=11,
+            fontweight="bold"
         )
 
-    st.pyplot(fig)
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
 
+    st.pyplot(fig)
 def plot_line(df):
     if df.empty:
         st.info("No data available.")
