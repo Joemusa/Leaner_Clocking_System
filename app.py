@@ -89,6 +89,7 @@ plt.rcParams.update({
 
 BAR_COLOR = "#4e79a7"
 FIG_SIZE = (8, 4.5)
+
 def plot_stacked_bar(pivot_df):
     fig, ax = plt.subplots(figsize=(12, 4.5))
 
@@ -96,17 +97,19 @@ def plot_stacked_bar(pivot_df):
 
     style_axes(ax)
 
-    # Fix x-axis
     ax.set_xticklabels(pivot_df.index.astype(str), rotation=0)
 
-    # Inside labels
     for container in ax.containers:
-        ax.bar_label(
-            container,
-            label_type="center",
-            fontsize=10,
-            color="white"
-        )
+        ax.bar_label(container, label_type="center", fontsize=10, color="white")
+
+    for i, idx in enumerate(pivot_df.index):
+        total = pivot_df.loc[idx].sum()
+        ax.text(i, total, f"{int(total)}", ha="center", va="bottom")
+
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
+
+    return fig   # ✅ IMPORTANT
 
     # Total labels on top (STANDARD)
     for i, idx in enumerate(pivot_df.index):
@@ -424,9 +427,8 @@ with tab1:
                 "font.size": 12
             })
             
-            #fig, ax = plt.subplots(figsize=(12,4))    
-            
-            plot_stacked_bar(pivot)
+            fig = plot_stacked_bar(pivot)
+            st.pyplot(fig)
             
             # ✅ FORCE CLEAN X-AXIS LABELS
             ax.set_xticklabels(pivot.index, rotation=0)
@@ -492,7 +494,8 @@ with tab1:
                 "font.size": 12
             })
     
-            plot_stacked_bar(pivot)
+            fig = plot_stacked_bar(pivot)
+            st.pyplot(fig)
     
         else:
             st.warning("Timestamp or Race column not found.")
