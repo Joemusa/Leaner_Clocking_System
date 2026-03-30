@@ -547,35 +547,37 @@ with tab2:
             fig.update_layout(
                 plot_bgcolor="white",
                 paper_bgcolor="white",
-                xaxis_title = None,
-                yaxis_title = None,
             
-                title=dict(
-                    font=dict(size=14),
-                    x=0.01   # left align
-                ),
+                # ✅ remove axis titles
+                xaxis_title=None,
+                yaxis_title=None,
             
+                # ✅ SHOW X-AXIS LINE
                 xaxis=dict(
-                    title="Date",
-                    tickfont=dict(size=10),
-                    title_font=dict(size=11),
-                    showgrid=False
+                    showline=True,
+                    linecolor="black",
+                    linewidth=1,
+                    showgrid=False,
+                    tickfont=dict(size=11)
                 ),
             
+                # ✅ CLEAN Y-AXIS
                 yaxis=dict(
-                    title="Count",
-                    tickfont=dict(size=10),
-                    title_font=dict(size=11),
-                    showgrid=True,
-                    gridcolor="rgba(0,0,0,0.1)"
+                    showline=False,
+                    gridcolor="rgba(0,0,0,0.1)",
+                    tickfont=dict(size=11)
                 ),
             
+                # ✅ FIX LEGEND
                 legend=dict(
-                    title="Gender",
-                    font=dict(size=10)
+                    title=None,   # 🔥 removes "Gender"
+                    font=dict(size=11, color="black"),
+                    bgcolor="rgba(255,255,255,0.7)",
+                    bordercolor="rgba(0,0,0,0.1)",
+                    borderwidth=1
                 ),
             
-                bargap=0.25
+                margin=dict(l=10, r=10, t=40, b=10)
             )
             
             # 🔥 FORMAT DATE PROPERLY
