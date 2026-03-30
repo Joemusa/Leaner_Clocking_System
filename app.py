@@ -569,6 +569,7 @@ with tab2:
                     linecolor="black",
                     linewidth=1,
                     showgrid=False,
+                    zeroline = False,
                     tickfont=dict(size=11)
                 ),
             
