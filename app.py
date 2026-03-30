@@ -571,7 +571,7 @@ with tab2:
                     showgrid=False,
                     zeroline = False,
                     showticklabels = True,
-                    tickfont=dict(size=11)
+                    tickfont=dict(size=11),
 
                     tickfont = dict(
                         size = 14,
