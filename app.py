@@ -576,6 +576,7 @@ with tab2:
                     tickfont = dict(
                         size = 14,
                         color = "black"
+                    )
                 ),
             
                 # ✅ CLEAN Y-AXIS
