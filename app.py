@@ -556,7 +556,65 @@ with tab2:
                 color="gender",
                 barmode="group",
                 text="count",
-                title="Daily Attendance by Gender"
+                title="Daily Attendance by Gender",
+                color_discrete_map={
+                    "Male": "#4e79a7",
+                    "Female": "#f28e2b"
+                }
+            )
+            
+            # 🔥 DATA LABELS (CLEAN + CONSISTENT)
+            fig.update_traces(
+                textposition="outside",
+                textfont=dict(
+                    size=12,
+                    color="black"
+                ),
+                cliponaxis=False
+            )
+            
+            # 🔥 LAYOUT (THIS IS THE MAGIC)
+            fig.update_layout(
+                plot_bgcolor="white",
+                paper_bgcolor="white",
+            
+                title=dict(
+                    font=dict(size=14),
+                    x=0.01   # left align
+                ),
+            
+                xaxis=dict(
+                    title="Date",
+                    tickfont=dict(size=10),
+                    title_font=dict(size=11),
+                    showgrid=False
+                ),
+            
+                yaxis=dict(
+                    title="Count",
+                    tickfont=dict(size=10),
+                    title_font=dict(size=11),
+                    showgrid=True,
+                    gridcolor="rgba(0,0,0,0.1)"
+                ),
+            
+                legend=dict(
+                    title="Gender",
+                    font=dict(size=10)
+                ),
+            
+                bargap=0.25
+            )
+            
+            # 🔥 FORMAT DATE PROPERLY
+            fig.update_xaxes(
+                tickformat="%d-%b",
+            )
+            
+            # 🔥 MAKE IT FULL WIDTH CLEAN
+            st.plotly_chart(
+                fig,
+                use_container_width=True
             )
             fig.update_traces(
                 textposition="inside",
