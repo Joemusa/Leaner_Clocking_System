@@ -64,6 +64,42 @@ plt.rcParams.update({
 
 BAR_COLOR = "#4e79a7"
 FIG_SIZE = (8, 4.5)
+def plot_stacked_bar(pivot_df):
+    fig, ax = plt.subplots(figsize=(12, 4.5))
+
+    pivot_df.plot(kind="bar", stacked=True, ax=ax)
+
+    style_axes(ax)
+
+    # Fix x-axis
+    ax.set_xticklabels(pivot_df.index.astype(str), rotation=0)
+
+    # Inside labels
+    for container in ax.containers:
+        ax.bar_label(
+            container,
+            label_type="center",
+            fontsize=10,
+            color="white"
+        )
+
+    # Total labels on top (STANDARD)
+    for i, idx in enumerate(pivot_df.index):
+        total = pivot_df.loc[idx].sum()
+        ax.text(
+            i,
+            total,
+            f"{int(total)}",
+            ha="center",
+            va="bottom",
+            fontsize=11,
+            fontweight="bold"
+        )
+
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
+
+    st.pyplot(fig)
 
 st.title("📊 School Attendance Dashboard")
 
@@ -365,7 +401,7 @@ with tab1:
             
             fig, ax = plt.subplots(figsize=(12,4))    
             
-            pivot.plot(kind="bar", stacked=True, ax=ax)
+            plot_stacked_bar(pivot)
             
             # ✅ FORCE CLEAN X-AXIS LABELS
             ax.set_xticklabels(pivot.index, rotation=0)
