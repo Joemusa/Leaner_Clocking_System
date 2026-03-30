@@ -647,7 +647,9 @@ with tab2:
             fig.update_layout(
                 xaxis=dict(
                     tickfont=dict(size=12),     # ✅ date font size
-                    title_font=dict(size=14)
+                    title_font=dict(size=14),
+                    xaxis_title = None,
+                    yaxis_title = None
                 ),
                 yaxis=dict(
                     tickfont=dict(size=12),
