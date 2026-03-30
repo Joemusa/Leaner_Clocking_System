@@ -52,6 +52,17 @@ st.set_page_config(
 )
 st.markdown("""
 <style>
+div[data-testid="stPlotlyChart"] {
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: white;
+    padding: 10px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<style>
 .kpi-box {
     border: 1px solid #333;
     border-radius: 12px;
