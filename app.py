@@ -97,7 +97,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("📊 SChool Attendance Dashboard")
+st.title("📊 School Attendance Dashboard")
 
 # ----------------------------
 # GOOGLE SHEETS CONNECTION
