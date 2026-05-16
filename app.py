@@ -777,6 +777,35 @@ with tab4:
     # -----------------------------
     # PRESENT LEARNERS (IN ONLY)
     # -----------------------------
+    k1, k2, k3 = st.columns(3)
+    
+        
+        with k1:
+            st.markdown(f"""
+            <div class="kpi-box">
+                <div class="kpi-title">Total Registered Learners</div>
+                <div class="kpi-value">{total_registered}</div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+        with k3:
+            st.markdown(f"""
+            <div class="kpi-box">
+                <div class="kpi-title">Absent Learners</div>
+                <div class="kpi-value">{absent_count}</div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+        with k2:
+            #total_records = learner_df['learner name'].notna().sum()
+    
+            st.markdown(f"""
+            <div class="kpi-box">
+                <div class="kpi-title">Total Attendance</div>
+                <div class="kpi-value">{total_records}</div>
+            </div>
+            """, unsafe_allow_html=True)
+    
     present_df = att_df[
         (att_df["scan_date"].dt.normalize() == selected_date) &
         (att_df["direction"].isin(["IN", "LATE"]))
