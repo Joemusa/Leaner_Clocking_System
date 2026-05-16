@@ -700,8 +700,9 @@ with tab2:
 # ----------------------------
 
 with tab3:
-    
-    st.dataframe(reg_df, use_container_width=True)
+
+    k1, k2, k3 = st.columns(3)
+
     
     with k1:
         st.markdown(f"""
@@ -728,7 +729,10 @@ with tab3:
             <div class="kpi-value">{total_records}</div>
         </div>
         """, unsafe_allow_html=True)
-
+    
+    st.dataframe(reg_df, use_container_width=True)
+    
+    
 with tab4:
     st.subheader("Absent Learners")
     # -----------------------------
