@@ -735,6 +735,36 @@ with tab3:
     
 with tab4:
     st.subheader("Absent Learners")
+    k1, k2, k3 = st.columns(3)
+
+    
+    with k1:
+        st.markdown(f"""
+        <div class="kpi-box">
+            <div class="kpi-title">Total Registered Learners</div>
+            <div class="kpi-value">{total_registered}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k3:
+        st.markdown(f"""
+        <div class="kpi-box">
+            <div class="kpi-title">Absent Learners</div>
+            <div class="kpi-value">{absent_count}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k2:
+     
+
+        st.markdown(f"""
+        <div class="kpi-box">
+            <div class="kpi-title">Total Attendance</div>
+            <div class="kpi-value">{total_records}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    
     # -----------------------------
     # LOAD DATA
     # -----------------------------
@@ -833,6 +863,7 @@ with tab4:
     st.info(f"Date: {selected_date.date()}")
     
     col1, col3 = st.columns(2)
+    
     col1.metric("Registered", total_registered)
     #col2.metric("Present", total_present)
     col3.metric("Absent", total_absent)
