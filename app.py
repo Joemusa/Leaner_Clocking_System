@@ -698,11 +698,36 @@ with tab2:
 # ----------------------------
 # TABLES (UNCHANGED)
 # ----------------------------
-#with tab3:
-    #st.dataframe(filtered_df, use_container_width=True)
 
 with tab3:
+    
     st.dataframe(reg_df, use_container_width=True)
+    
+    with k1:
+        st.markdown(f"""
+        <div class="kpi-box">
+            <div class="kpi-title">Total Registered Learners</div>
+            <div class="kpi-value">{total_registered}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k3:
+        st.markdown(f"""
+        <div class="kpi-box">
+            <div class="kpi-title">Absent Learners</div>
+            <div class="kpi-value">{absent_count}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k2:
+        #total_records = learner_df['learner name'].notna().sum()
+
+        st.markdown(f"""
+        <div class="kpi-box">
+            <div class="kpi-title">Total Attendance</div>
+            <div class="kpi-value">{total_records}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
 with tab4:
     st.subheader("Absent Learners")
