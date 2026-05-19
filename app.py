@@ -15,7 +15,6 @@ import streamlit as st
 USER_CREDENTIALS = 
     "admin": "1234",   # change this!
     "school": "abcd"   # change this!
-}
 
 # -------------------------
 # LOGIN FUNCTION
