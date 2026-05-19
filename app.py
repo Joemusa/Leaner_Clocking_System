@@ -1060,6 +1060,8 @@ with tab5:
     if menu == "School Settings":
     
         st.header("⚙️ School Settings")
+
+        timetable_entries = []
         teacher_schedule = {}
         class_schedule = {}
     
