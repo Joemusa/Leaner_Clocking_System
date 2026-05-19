@@ -974,11 +974,29 @@ with tab5:
     from datetime import datetime, timedelta
     
     # =====================================================
-    # DATABASE
+    # PAGE CONFIG
+    # =====================================================
+    
+    st.set_page_config(
+        page_title="Automatic School Timetable Generator",
+        layout="wide"
+    )
+    
+    st.title("📚 Automatic School Timetable Generator")
+    
+    # =====================================================
+    # DATABASE CONNECTION
     # =====================================================
     
     conn = sqlite3.connect("school.db", check_same_thread=False)
     c = conn.cursor()
+    
+    # =====================================================
+    # DROP OLD TIMETABLE TABLE
+    # =====================================================
+    
+    # REMOVE THIS LATER IN PRODUCTION
+    c.execute("DROP TABLE IF EXISTS timetable")
     
     # =====================================================
     # CREATE TABLES
@@ -1013,7 +1031,7 @@ with tab5:
     """)
     
     c.execute("""
-    CREATE TABLE IF NOT EXISTS timetable (
+    CREATE TABLE timetable (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         grade TEXT,
         day TEXT,
@@ -1027,18 +1045,7 @@ with tab5:
     conn.commit()
     
     # =====================================================
-    # PAGE CONFIG
-    # =====================================================
-    
-    st.set_page_config(
-        page_title="Automatic School Timetable Generator",
-        layout="wide"
-    )
-    
-    st.title("📚 Automatic School Timetable Generator")
-    
-    # =====================================================
-    # SIDEBAR
+    # SIDEBAR MENU
     # =====================================================
     
     menu = st.sidebar.selectbox(
@@ -1068,15 +1075,26 @@ with tab5:
             "Friday"
         ]
     
-        selected_day = st.selectbox("Select Day", days)
+        selected_day = st.selectbox(
+            "Select Day",
+            days
+        )
     
-        start_time = st.time_input("School Start Time")
+        start_time = st.time_input(
+            "School Start Time"
+        )
     
-        end_time = st.time_input("School End Time")
+        end_time = st.time_input(
+            "School End Time"
+        )
     
-        lunch_start = st.time_input("Lunch Start")
+        lunch_start = st.time_input(
+            "Lunch Start Time"
+        )
     
-        lunch_end = st.time_input("Lunch End")
+        lunch_end = st.time_input(
+            "Lunch End Time"
+        )
     
         period_duration = st.number_input(
             "Period Duration (Minutes)",
@@ -1087,11 +1105,13 @@ with tab5:
     
         if st.button("Save Settings"):
     
+            # DELETE OLD SETTINGS
             c.execute("""
             DELETE FROM school_settings
             WHERE day = ?
             """, (selected_day,))
     
+            # INSERT NEW SETTINGS
             c.execute("""
             INSERT INTO school_settings
             VALUES (?, ?, ?, ?, ?, ?)
@@ -1106,7 +1126,7 @@ with tab5:
     
             conn.commit()
     
-            st.success("✅ Settings Saved")
+            st.success("✅ School Settings Saved")
     
     # =====================================================
     # TEACHERS
@@ -1116,9 +1136,13 @@ with tab5:
     
         st.header("👨‍🏫 Teachers")
     
-        teacher_name = st.text_input("Teacher Name")
+        teacher_name = st.text_input(
+            "Teacher Name"
+        )
     
-        subject = st.text_input("Subject")
+        subject = st.text_input(
+            "Subject"
+        )
     
         if st.button("Add Teacher"):
     
@@ -1140,7 +1164,10 @@ with tab5:
             conn
         )
     
-        st.dataframe(teachers_df)
+        st.dataframe(
+            teachers_df,
+            use_container_width=True
+        )
     
     # =====================================================
     # GRADE SUBJECTS
@@ -1151,17 +1178,19 @@ with tab5:
         st.header("📘 Grade Subjects")
     
         grade = st.selectbox(
-            "Select Grade",
+            "Select Class",
             [
-                "Grade 8",
-                "Grade 9",
-                "Grade 10",
-                "Grade 11",
-                "Grade 12"
+                "Grade 8A",
+                "Grade 8B",
+                "Grade 9A",
+                "Grade 9B",
+                "Grade 10A"
             ]
         )
     
-        subject = st.text_input("Subject")
+        subject = st.text_input(
+            "Subject"
+        )
     
         periods_per_week = st.number_input(
             "Periods Per Week",
@@ -1191,10 +1220,13 @@ with tab5:
             conn
         )
     
-        st.dataframe(subjects_df)
+        st.dataframe(
+            subjects_df,
+            use_container_width=True
+        )
     
     # =====================================================
-    # GENERATE PERIODS
+    # GENERATE PERIODS FUNCTION
     # =====================================================
     
     def generate_periods(
@@ -1207,19 +1239,33 @@ with tab5:
     
         periods = []
     
-        current = datetime.strptime(start_time, "%H:%M:%S")
+        current = datetime.strptime(
+            start_time,
+            "%H:%M:%S"
+        )
     
-        end = datetime.strptime(end_time, "%H:%M:%S")
+        end = datetime.strptime(
+            end_time,
+            "%H:%M:%S"
+        )
     
-        lunch_s = datetime.strptime(lunch_start, "%H:%M:%S")
+        lunch_s = datetime.strptime(
+            lunch_start,
+            "%H:%M:%S"
+        )
     
-        lunch_e = datetime.strptime(lunch_end, "%H:%M:%S")
+        lunch_e = datetime.strptime(
+            lunch_end,
+            "%H:%M:%S"
+        )
     
         while current < end:
     
-            next_period = current + timedelta(minutes=duration)
+            next_period = current + timedelta(
+                minutes=duration
+            )
     
-            # Skip lunch
+            # SKIP LUNCH
             if current >= lunch_s and current < lunch_e:
     
                 current = lunch_e
@@ -1239,11 +1285,12 @@ with tab5:
     # =====================================================
     
     if menu == "Generate Timetable":
-
+    
         st.header("🧠 Generate Timetable")
     
         if st.button("Generate Weekly Timetable"):
     
+            # CLEAR OLD TIMETABLE
             c.execute("DELETE FROM timetable")
             conn.commit()
     
@@ -1282,7 +1329,6 @@ with tab5:
                     subjects_df["grade"] == grade
                 ]
     
-                # TRACK DAILY SUBJECT COUNT
                 daily_subject_count = {}
     
                 for day in days:
@@ -1315,12 +1361,18 @@ with tab5:
                         # DISTRIBUTE SUBJECTS
                         subject_per_day = max(
                             1,
-                            periods_needed // 5
+                            round(periods_needed / 5)
                         )
     
-                        if daily_subject_count.get((grade, day, subject), 0) >= subject_per_day:
+                        # DAILY LIMIT
+                        if daily_subject_count.get(
+                            (grade, day, subject),
+                            0
+                        ) >= subject_per_day:
+    
                             continue
     
+                        # FIND TEACHER
                         teacher_match = teachers_df[
                             teachers_df["subject"] == subject
                         ]
@@ -1328,31 +1380,47 @@ with tab5:
                         if teacher_match.empty:
                             continue
     
-                        teacher = teacher_match.iloc[0]["teacher_name"]
+                        teacher = teacher_match.iloc[0][
+                            "teacher_name"
+                        ]
     
                         for p in range(subject_per_day):
     
                             if period_index >= len(periods):
                                 break
     
-                            start_p, end_p = periods[period_index]
+                            start_p, end_p = periods[
+                                period_index
+                            ]
     
-                            teacher_key = f"{teacher}_{day}_{start_p}"
+                            teacher_key = (
+                                f"{teacher}_{day}_{start_p}"
+                            )
     
-                            class_key = f"{grade}_{day}_{start_p}"
+                            class_key = (
+                                f"{grade}_{day}_{start_p}"
+                            )
     
                             # TEACHER CLASH
                             if teacher_key in teacher_schedule:
+    
                                 period_index += 1
                                 continue
     
                             # CLASS CLASH
                             if class_key in class_schedule:
+    
                                 period_index += 1
                                 continue
     
-                            teacher_schedule[teacher_key] = True
-                            class_schedule[class_key] = True
+                            # SAVE SCHEDULE
+                            teacher_schedule[
+                                teacher_key
+                            ] = True
+    
+                            class_schedule[
+                                class_key
+                            ] = True
     
                             timetable_entries.append((
                                 grade,
@@ -1363,14 +1431,16 @@ with tab5:
                                 teacher
                             ))
     
-                            daily_subject_count[(grade, day, subject)] = \
-                                daily_subject_count.get(
-                                    (grade, day, subject),
-                                    0
-                                ) + 1
+                            daily_subject_count[
+                                (grade, day, subject)
+                            ] = daily_subject_count.get(
+                                (grade, day, subject),
+                                0
+                            ) + 1
     
                             period_index += 1
     
+            # INSERT TIMETABLE
             c.executemany("""
             INSERT INTO timetable
             (
@@ -1386,7 +1456,9 @@ with tab5:
     
             conn.commit()
     
-            st.success("✅ Weekly Timetable Generated!")
+            st.success(
+                "✅ Weekly Timetable Generated Successfully!"
+            )
     
     # =====================================================
     # VIEW TIMETABLE
@@ -1394,16 +1466,16 @@ with tab5:
     
     if menu == "View Timetable":
     
-        st.header("📅 Weekly Timetable")
+        st.header("📅 View Timetable")
     
         selected_grade = st.selectbox(
-            "Select Grade",
+            "Select Class",
             [
-                "Grade 8",
-                "Grade 9",
-                "Grade 10",
-                "Grade 11",
-                "Grade 12"
+                "Grade 8A",
+                "Grade 8B",
+                "Grade 9A",
+                "Grade 9B",
+                "Grade 10A"
             ]
         )
     
@@ -1421,7 +1493,9 @@ with tab5:
     
         if df.empty:
     
-            st.warning("⚠️ No timetable generated.")
+            st.warning(
+                "⚠️ No timetable generated."
+            )
     
         else:
     
@@ -1431,17 +1505,26 @@ with tab5:
                 values="subject"
             )
     
+            st.subheader(
+                f"{selected_grade} Timetable"
+            )
+    
             st.dataframe(
                 pivot_df,
                 use_container_width=True
             )
     
-            st.subheader("Detailed Timetable")
+            st.subheader(
+                "Detailed Timetable"
+            )
     
-            st.dataframe(df)
+            st.dataframe(
+                df,
+                use_container_width=True
+            )
     
     # =====================================================
-    # CLOSE DB
+    # CLOSE CONNECTION
     # =====================================================
     
     conn.close()
