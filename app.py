@@ -12,9 +12,10 @@ import streamlit as st
 # -------------------------
 # LOGIN CONFIGURATION
 # -------------------------
-USER_CREDENTIALS = 
+USER_CREDENTIALS = {
     "admin": "1234",   # change this!
     "school": "abcd"   # change this!
+}
 
 # -------------------------
 # LOGIN FUNCTION
