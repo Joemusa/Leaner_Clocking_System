@@ -1302,6 +1302,14 @@ with tab5:
                 "SELECT * FROM teachers",
                 conn
             )
+            st.write("SETTINGS")
+            st.write(settings_df)
+            
+            st.write("SUBJECTS")
+            st.write(subjects_df)
+            
+            st.write("TEACHERS")
+            st.write(teachers_df)
     
             timetable_entries = []
     
