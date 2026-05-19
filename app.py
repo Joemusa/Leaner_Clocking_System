@@ -991,12 +991,6 @@ with tab5:
     conn = sqlite3.connect("school.db", check_same_thread=False)
     c = conn.cursor()
     
-    # =====================================================
-    # DROP OLD TIMETABLE TABLE
-    # =====================================================
-    
-    # REMOVE THIS LATER IN PRODUCTION
-    c.execute("DROP TABLE IF EXISTS timetable")
     
     # =====================================================
     # CREATE TABLES
@@ -1031,7 +1025,7 @@ with tab5:
     """)
     
     c.execute("""
-    CREATE TABLE timetable (
+    CREATE TABLE IF NOT EXISTS timetable (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         grade TEXT,
         day TEXT,
