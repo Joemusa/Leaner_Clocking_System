@@ -1044,7 +1044,7 @@ with tab5:
     # =====================================================
     
     menu = st.sidebar.selectbox(
-        "Menu",
+        "Time Table Genrator Setup",
         [
             "School Settings",
             "Teachers",
@@ -1600,7 +1600,7 @@ with tab6:
     # =====================================================
     
     menu = st.sidebar.selectbox(
-        "Navigation",
+        "Report Card Set Up",
         [
             "Dashboard",
             "Add Student",
