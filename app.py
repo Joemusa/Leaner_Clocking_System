@@ -12,7 +12,7 @@ import streamlit as st
 # -------------------------
 # LOGIN CONFIGURATION
 # -------------------------
-USER_CREDENTIALS = {
+USER_CREDENTIALS = 
     "admin": "1234",   # change this!
     "school": "abcd"   # change this!
 }
@@ -1239,7 +1239,7 @@ with tab5:
     # =====================================================
     
     if menu == "Generate Timetable":
-    
+
         st.header("🧠 Generate Timetable")
     
         if st.button("Generate Weekly Timetable"):
@@ -1265,24 +1265,44 @@ with tab5:
             timetable_entries = []
     
             teacher_schedule = {}
+            class_schedule = {}
     
-            for _, setting in settings_df.iterrows():
+            days = [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday"
+            ]
     
-                day = setting["day"]
+            # LOOP THROUGH CLASSES
+            for grade in subjects_df["grade"].unique():
     
-                periods = generate_periods(
-                    setting["start_time"],
-                    setting["end_time"],
-                    setting["lunch_start"],
-                    setting["lunch_end"],
-                    setting["period_duration"]
-                )
+                grade_subjects = subjects_df[
+                    subjects_df["grade"] == grade
+                ]
     
-                for grade in subjects_df["grade"].unique():
+                # TRACK DAILY SUBJECT COUNT
+                daily_subject_count = {}
     
-                    grade_subjects = subjects_df[
-                        subjects_df["grade"] == grade
+                for day in days:
+    
+                    setting = settings_df[
+                        settings_df["day"] == day
                     ]
+    
+                    if setting.empty:
+                        continue
+    
+                    setting = setting.iloc[0]
+    
+                    periods = generate_periods(
+                        setting["start_time"],
+                        setting["end_time"],
+                        setting["lunch_start"],
+                        setting["lunch_end"],
+                        setting["period_duration"]
+                    )
     
                     period_index = 0
     
@@ -1291,6 +1311,15 @@ with tab5:
                         subject = row["subject"]
     
                         periods_needed = row["periods_per_week"]
+    
+                        # DISTRIBUTE SUBJECTS
+                        subject_per_day = max(
+                            1,
+                            periods_needed // 5
+                        )
+    
+                        if daily_subject_count.get((grade, day, subject), 0) >= subject_per_day:
+                            continue
     
                         teacher_match = teachers_df[
                             teachers_df["subject"] == subject
@@ -1301,22 +1330,29 @@ with tab5:
     
                         teacher = teacher_match.iloc[0]["teacher_name"]
     
-                        for i in range(periods_needed):
+                        for p in range(subject_per_day):
     
                             if period_index >= len(periods):
                                 break
     
                             start_p, end_p = periods[period_index]
     
-                            key = f"{teacher}_{day}_{start_p}"
+                            teacher_key = f"{teacher}_{day}_{start_p}"
     
-                            # Clash Prevention
-                            if key in teacher_schedule:
+                            class_key = f"{grade}_{day}_{start_p}"
     
+                            # TEACHER CLASH
+                            if teacher_key in teacher_schedule:
                                 period_index += 1
                                 continue
     
-                            teacher_schedule[key] = True
+                            # CLASS CLASH
+                            if class_key in class_schedule:
+                                period_index += 1
+                                continue
+    
+                            teacher_schedule[teacher_key] = True
+                            class_schedule[class_key] = True
     
                             timetable_entries.append((
                                 grade,
@@ -1326,6 +1362,12 @@ with tab5:
                                 subject,
                                 teacher
                             ))
+    
+                            daily_subject_count[(grade, day, subject)] = \
+                                daily_subject_count.get(
+                                    (grade, day, subject),
+                                    0
+                                ) + 1
     
                             period_index += 1
     
@@ -1344,7 +1386,7 @@ with tab5:
     
             conn.commit()
     
-            st.success("✅ Timetable Generated Successfully!")
+            st.success("✅ Weekly Timetable Generated!")
     
     # =====================================================
     # VIEW TIMETABLE
