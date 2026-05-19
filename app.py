@@ -966,10 +966,23 @@ with tab4:
             else:
                 st.success("No absences for this learner 🎉")
 
-with tab4:
+with tab5:
     
-    conn = sqlite3.connect("school.db")
+    import streamlit as st
+    import pandas as pd
+    import sqlite3
+    from datetime import time
+    
+    # =========================================
+    # DATABASE CONNECTION
+    # =========================================
+    
+    conn = sqlite3.connect("school.db", check_same_thread=False)
     c = conn.cursor()
+    
+    # =========================================
+    # CREATE TABLE
+    # =========================================
     
     c.execute("""
     CREATE TABLE IF NOT EXISTS timetable (
@@ -983,72 +996,184 @@ with tab4:
     """)
     
     conn.commit()
-    conn.close()
-
     
-    st.title("Create Timetable")
+    # =========================================
+    # PAGE TITLE
+    # =========================================
     
-    grade = st.selectbox(
-        "Select Grade",
-        ["Grade 8A", "Grade 8B", "Grade 9A"]
+    st.set_page_config(page_title="School Timetable", layout="wide")
+    
+    st.title("📚 School Timetable Generator")
+    
+    # =========================================
+    # SIDEBAR MENU
+    # =========================================
+    
+    menu = st.sidebar.selectbox(
+        "Menu",
+        ["Add Timetable", "View Timetable"]
     )
     
-    day = st.selectbox(
-        "Day",
-        ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-    )
+    # =========================================
+    # ADD TIMETABLE
+    # =========================================
     
-    start_time = st.time_input("Start Time")
-    end_time = st.time_input("End Time")
+    if menu == "Add Timetable":
     
-    subject = st.text_input("Subject")
+        st.subheader("Add Timetable Entry")
     
-    if st.button("Save Timetable"):
+        # Grade Selection
+        grade = st.selectbox(
+            "Select Grade",
+            [
+                "Grade 8A",
+                "Grade 8B",
+                "Grade 9A",
+                "Grade 9B",
+                "Grade 10A"
+            ]
+        )
     
-        conn = sqlite3.connect("school.db")
-        c = conn.cursor()
+        # Day Selection
+        day = st.selectbox(
+            "Select Day",
+            [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday"
+            ]
+        )
     
-        c.execute("""
+        # Time Inputs
+        start_time = st.time_input(
+            "Start Time",
+            value=time(8, 0)
+        )
+    
+        end_time = st.time_input(
+            "End Time",
+            value=time(9, 0)
+        )
+    
+        # Subject Input
+        subject = st.selectbox(
+            "Select Subject",
+            [
+                "Mathematics",
+                "English",
+                "Science",
+                "History",
+                "Geography",
+                "Life Orientation",
+                "Accounting",
+                "Physical Science",
+                "Xitsonga",
+                "Xitsonga HL"
+            ]
+        )
+    
+        # SAVE BUTTON
+        if st.button("Save Timetable"):
+    
+            c.execute("""
+            INSERT INTO timetable
+            (grade, day, start_time, end_time, subject)
+            VALUES (?, ?, ?, ?, ?)
+            """, (
+                grade,
+                day,
+                str(start_time),
+                str(end_time),
+                subject
+            ))
+    
+            conn.commit()
+    
+            st.success("✅ Timetable saved successfully!")
+    
+    # =========================================
+    # VIEW TIMETABLE
+    # =========================================
+    
+    if menu == "View Timetable":
+    
+        st.subheader("View Timetable")
+    
+        selected_day = st.selectbox(
+            "Select Day",
+            [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday"
+            ]
+        )
+    
+        # LOAD DATA
+        query = """
+        SELECT
+            start_time || ' - ' || end_time AS Time,
+            grade,
+            subject,
+            day
+        FROM timetable
+        """
+    
+        df = pd.read_sql(query, conn)
+    
+        # FILTER DAY
+        filtered_df = df[df["day"] == selected_day]
+    
+        # DISPLAY
+        if filtered_df.empty:
+    
+            st.warning("⚠️ No timetable records found.")
+    
+        else:
+    
+            timetable_df = filtered_df.pivot(
+                index="Time",
+                columns="grade",
+                values="subject"
+            )
+    
+            st.dataframe(
+                timetable_df,
+                use_container_width=True
+            )
+    
+    # =========================================
+    # OPTIONAL SAMPLE DATA BUTTON
+    # =========================================
+    
+    st.sidebar.markdown("---")
+    
+    if st.sidebar.button("Load Sample Data"):
+    
+        sample_data = [
+            ("Grade 8A", "Monday", "08:00", "09:00", "Mathematics"),
+            ("Grade 8B", "Monday", "08:00", "09:00", "English"),
+            ("Grade 9A", "Monday", "08:00", "09:00", "Science"),
+            ("Grade 8A", "Monday", "09:00", "10:00", "History"),
+            ("Grade 8B", "Monday", "09:00", "10:00", "Geography"),
+            ("Grade 9A", "Monday", "09:00", "10:00", "Accounting")
+        ]
+    
+        c.executemany("""
         INSERT INTO timetable
         (grade, day, start_time, end_time, subject)
         VALUES (?, ?, ?, ?, ?)
-        """, (
-            grade,
-            day,
-            str(start_time),
-            str(end_time),
-            subject
-        ))
+        """, sample_data)
     
         conn.commit()
-        conn.close()
     
-        st.success("Timetable saved successfully!")
-
-   
-
-    conn = sqlite3.connect("school.db")
+        st.sidebar.success("✅ Sample data loaded!")
     
-    query = """
-    SELECT
-        start_time || ' - ' || end_time AS Time,
-        grade,
-        subject
-    FROM timetable
-    WHERE day = 'Monday'
-    ORDER BY start_time
-    """
-    
-    df = pd.read_sql(query, conn)
-    
-    pivot_df = df.pivot(
-        index="Time",
-        columns="grade",
-        values="subject"
-    )
-    
-    st.subheader("Monday Timetable")
-    
-    st.table(pivot_df)
+    # =========================================
+    # CLOSE CONNECTION
+    # =========================================
     
     conn.close()
