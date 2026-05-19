@@ -295,12 +295,13 @@ selected_date = pd.to_datetime(selected_date).normalize()
 # ----------------------------
 # TABS
 # ----------------------------
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "School Demographics",
     "Attendance",
     "Registered Learners",
     "Absent Learners",
-    "Time Table Generator"
+    "Time Table Generator",
+    "Report Card Generator"
 ])
 
 # ----------------------------
@@ -1525,453 +1526,454 @@ with tab5:
     # =====================================================
     # CLOSE CONNECTION
     # =====================================================
-    
+
+with tab6:
     conn.close()
-import streamlit as st
-import sqlite3
-import pandas as pd
-from datetime import datetime
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus.flowables import Image
-from reportlab.lib.units import inch
-import os
-
-# =====================================================
-# DATABASE SETUP
-# =====================================================
-
-conn = sqlite3.connect('school_system.db', check_same_thread=False)
-c = conn.cursor()
-
-# Students Table
-c.execute('''
-CREATE TABLE IF NOT EXISTS students (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    student_number TEXT,
-    name TEXT,
-    surname TEXT,
-    grade TEXT,
-    class_name TEXT,
-    parent_email TEXT
-)
-''')
-
-# Subjects Table
-c.execute('''
-CREATE TABLE IF NOT EXISTS subjects (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    subject_name TEXT
-)
-''')
-
-# Marks Table
-c.execute('''
-CREATE TABLE IF NOT EXISTS marks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    student_id INTEGER,
-    subject TEXT,
-    term TEXT,
-    marks_obtained REAL,
-    total_marks REAL,
-    percentage REAL
-)
-''')
-
-conn.commit()
-
-# =====================================================
-# PAGE CONFIG
-# =====================================================
-
-st.set_page_config(
-    page_title="School Analytics Platform",
-    layout="wide"
-)
-
-st.title("🎓 School Analytics & Reporting Platform")
-
-# =====================================================
-# SIDEBAR
-# =====================================================
-
-menu = st.sidebar.selectbox(
-    "Navigation",
-    [
-        "Dashboard",
-        "Add Student",
-        "View Students",
-        "Capture Marks",
-        "Generate Report"
-    ]
-)
-
-# =====================================================
-# DASHBOARD
-# =====================================================
-
-if menu == "Dashboard":
-
-    st.header("📊 School Dashboard")
-
-    total_students = pd.read_sql_query(
-        "SELECT COUNT(*) as total FROM students",
-        conn
-    ).iloc[0]['total']
-
-    total_marks = pd.read_sql_query(
-        "SELECT COUNT(*) as total FROM marks",
-        conn
-    ).iloc[0]['total']
-
-    average_percentage = pd.read_sql_query(
-        "SELECT AVG(percentage) as avg_percentage FROM marks",
-        conn
-    ).iloc[0]['avg_percentage']
-
-    col1, col2, col3 = st.columns(3)
-
-    col1.metric("Total Students", total_students)
-    col2.metric("Marks Captured", total_marks)
-
-    if average_percentage:
-        col3.metric(
-            "School Average",
-            f"{average_percentage:.2f}%"
-        )
-    else:
-        col3.metric("School Average", "0%")
-
-    st.subheader("Recent Marks")
-
-    recent_marks = pd.read_sql_query('''
-    SELECT students.name,
-           students.surname,
-           marks.subject,
-           marks.percentage
-    FROM marks
-    JOIN students ON students.id = marks.student_id
-    ORDER BY marks.id DESC
-    LIMIT 10
-    ''', conn)
-
-    st.dataframe(recent_marks, use_container_width=True)
-
-# =====================================================
-# ADD STUDENT
-# =====================================================
-
-elif menu == "Add Student":
-
-    st.header("➕ Add Student")
-
-    with st.form("student_form"):
-
-        student_number = st.text_input("Student Number")
-        name = st.text_input("Name")
-        surname = st.text_input("Surname")
-        grade = st.selectbox(
-            "Grade",
-            [
-                "Grade 8",
-                "Grade 9",
-                "Grade 10",
-                "Grade 11",
-                "Grade 12"
-            ]
-        )
-
-        class_name = st.text_input("Class")
-        parent_email = st.text_input("Parent Email")
-
-        submit_student = st.form_submit_button("Save Student")
-
-        if submit_student:
-
-            c.execute('''
-            INSERT INTO students (
-                student_number,
-                name,
-                surname,
-                grade,
-                class_name,
-                parent_email
+    import streamlit as st
+    import sqlite3
+    import pandas as pd
+    from datetime import datetime
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.pagesizes import A4
+    from reportlab.platypus.flowables import Image
+    from reportlab.lib.units import inch
+    import os
+    
+    # =====================================================
+    # DATABASE SETUP
+    # =====================================================
+    
+    conn = sqlite3.connect('school_system.db', check_same_thread=False)
+    c = conn.cursor()
+    
+    # Students Table
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS students (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_number TEXT,
+        name TEXT,
+        surname TEXT,
+        grade TEXT,
+        class_name TEXT,
+        parent_email TEXT
+    )
+    ''')
+    
+    # Subjects Table
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS subjects (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        subject_name TEXT
+    )
+    ''')
+    
+    # Marks Table
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS marks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_id INTEGER,
+        subject TEXT,
+        term TEXT,
+        marks_obtained REAL,
+        total_marks REAL,
+        percentage REAL
+    )
+    ''')
+    
+    conn.commit()
+    
+    # =====================================================
+    # PAGE CONFIG
+    # =====================================================
+    
+    st.set_page_config(
+        page_title="School Analytics Platform",
+        layout="wide"
+    )
+    
+    st.title("🎓 School Analytics & Reporting Platform")
+    
+    # =====================================================
+    # SIDEBAR
+    # =====================================================
+    
+    menu = st.sidebar.selectbox(
+        "Navigation",
+        [
+            "Dashboard",
+            "Add Student",
+            "View Students",
+            "Capture Marks",
+            "Generate Report"
+        ]
+    )
+    
+    # =====================================================
+    # DASHBOARD
+    # =====================================================
+    
+    if menu == "Dashboard":
+    
+        st.header("📊 School Dashboard")
+    
+        total_students = pd.read_sql_query(
+            "SELECT COUNT(*) as total FROM students",
+            conn
+        ).iloc[0]['total']
+    
+        total_marks = pd.read_sql_query(
+            "SELECT COUNT(*) as total FROM marks",
+            conn
+        ).iloc[0]['total']
+    
+        average_percentage = pd.read_sql_query(
+            "SELECT AVG(percentage) as avg_percentage FROM marks",
+            conn
+        ).iloc[0]['avg_percentage']
+    
+        col1, col2, col3 = st.columns(3)
+    
+        col1.metric("Total Students", total_students)
+        col2.metric("Marks Captured", total_marks)
+    
+        if average_percentage:
+            col3.metric(
+                "School Average",
+                f"{average_percentage:.2f}%"
             )
-            VALUES (?, ?, ?, ?, ?, ?)
-            ''', (
-                student_number,
-                name,
-                surname,
-                grade,
-                class_name,
-                parent_email
-            ))
-
-            conn.commit()
-
-            st.success("Student added successfully!")
-
-# =====================================================
-# VIEW STUDENTS
-# =====================================================
-
-elif menu == "View Students":
-
-    st.header("👨‍🎓 Students")
-
-    students_df = pd.read_sql_query(
-        "SELECT * FROM students",
-        conn
-    )
-
-    st.dataframe(students_df, use_container_width=True)
-
-# =====================================================
-# CAPTURE MARKS
-# =====================================================
-
-elif menu == "Capture Marks":
-
-    st.header("📝 Capture Marks")
-
-    students = pd.read_sql_query(
-        "SELECT id, name || ' ' || surname as fullname FROM students",
-        conn
-    )
-
-    if len(students) == 0:
-        st.warning("Please add students first.")
-
-    else:
-
-        student_option = st.selectbox(
-            "Select Student",
-            students['fullname']
-        )
-
-        selected_student = students[
-            students['fullname'] == student_option
-        ].iloc[0]
-
-        subject = st.text_input("Subject")
-
-        term = st.selectbox(
-            "Term",
-            ["Term 1", "Term 2", "Term 3", "Term 4"]
-        )
-
-        marks_obtained = st.number_input(
-            "Marks Obtained",
-            min_value=0.0
-        )
-
-        total_marks = st.number_input(
-            "Total Marks",
-            min_value=1.0,
-            value=100.0
-        )
-
-        if total_marks > 0:
-            percentage = (marks_obtained / total_marks) * 100
         else:
-            percentage = 0
-
-        st.info(f"Percentage: {percentage:.2f}%")
-
-        if st.button("Save Marks"):
-
-            c.execute('''
-            INSERT INTO marks (
-                student_id,
-                subject,
-                term,
-                marks_obtained,
-                total_marks,
-                percentage
-            )
-            VALUES (?, ?, ?, ?, ?, ?)
-            ''', (
-                int(selected_student['id']),
-                subject,
-                term,
-                marks_obtained,
-                total_marks,
-                percentage
-            ))
-
-            conn.commit()
-
-            st.success("Marks saved successfully!")
-
-# =====================================================
-# GENERATE REPORT
-# =====================================================
-
-elif menu == "Generate Report":
-
-    st.header("📄 Generate Student Report")
-
-    students = pd.read_sql_query(
-        "SELECT id, name || ' ' || surname as fullname FROM students",
-        conn
-    )
-
-    if len(students) == 0:
-        st.warning("Please add students first.")
-
-    else:
-
-        student_option = st.selectbox(
-            "Select Student",
-            students['fullname']
-        )
-
-        selected_student = students[
-            students['fullname'] == student_option
-        ].iloc[0]
-
-        student_id = int(selected_student['id'])
-
-        student_details = pd.read_sql_query(f'''
-        SELECT *
-        FROM students
-        WHERE id = {student_id}
-        ''', conn)
-
-        marks_df = pd.read_sql_query(f'''
-        SELECT subject,
-               term,
-               marks_obtained,
-               total_marks,
-               percentage
+            col3.metric("School Average", "0%")
+    
+        st.subheader("Recent Marks")
+    
+        recent_marks = pd.read_sql_query('''
+        SELECT students.name,
+               students.surname,
+               marks.subject,
+               marks.percentage
         FROM marks
-        WHERE student_id = {student_id}
+        JOIN students ON students.id = marks.student_id
+        ORDER BY marks.id DESC
+        LIMIT 10
         ''', conn)
-
-        st.subheader("Student Information")
-        st.dataframe(student_details)
-
-        st.subheader("Academic Performance")
-        st.dataframe(marks_df)
-
-        if st.button("Generate PDF Report"):
-
-            student_name = (
-                student_details.iloc[0]['name'] + " " +
-                student_details.iloc[0]['surname']
+    
+        st.dataframe(recent_marks, use_container_width=True)
+    
+    # =====================================================
+    # ADD STUDENT
+    # =====================================================
+    
+    elif menu == "Add Student":
+    
+        st.header("➕ Add Student")
+    
+        with st.form("student_form"):
+    
+            student_number = st.text_input("Student Number")
+            name = st.text_input("Name")
+            surname = st.text_input("Surname")
+            grade = st.selectbox(
+                "Grade",
+                [
+                    "Grade 8",
+                    "Grade 9",
+                    "Grade 10",
+                    "Grade 11",
+                    "Grade 12"
+                ]
             )
-
-            file_name = f"{student_name}_report.pdf"
-
-            doc = SimpleDocTemplate(
-                file_name,
-                pagesize=A4
+    
+            class_name = st.text_input("Class")
+            parent_email = st.text_input("Parent Email")
+    
+            submit_student = st.form_submit_button("Save Student")
+    
+            if submit_student:
+    
+                c.execute('''
+                INSERT INTO students (
+                    student_number,
+                    name,
+                    surname,
+                    grade,
+                    class_name,
+                    parent_email
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                ''', (
+                    student_number,
+                    name,
+                    surname,
+                    grade,
+                    class_name,
+                    parent_email
+                ))
+    
+                conn.commit()
+    
+                st.success("Student added successfully!")
+    
+    # =====================================================
+    # VIEW STUDENTS
+    # =====================================================
+    
+    elif menu == "View Students":
+    
+        st.header("👨‍🎓 Students")
+    
+        students_df = pd.read_sql_query(
+            "SELECT * FROM students",
+            conn
+        )
+    
+        st.dataframe(students_df, use_container_width=True)
+    
+    # =====================================================
+    # CAPTURE MARKS
+    # =====================================================
+    
+    elif menu == "Capture Marks":
+    
+        st.header("📝 Capture Marks")
+    
+        students = pd.read_sql_query(
+            "SELECT id, name || ' ' || surname as fullname FROM students",
+            conn
+        )
+    
+        if len(students) == 0:
+            st.warning("Please add students first.")
+    
+        else:
+    
+            student_option = st.selectbox(
+                "Select Student",
+                students['fullname']
             )
-
-            styles = getSampleStyleSheet()
-            elements = []
-
-            # Title
-            title = Paragraph(
-                "<b>Student Academic Report</b>",
-                styles['Title']
+    
+            selected_student = students[
+                students['fullname'] == student_option
+            ].iloc[0]
+    
+            subject = st.text_input("Subject")
+    
+            term = st.selectbox(
+                "Term",
+                ["Term 1", "Term 2", "Term 3", "Term 4"]
             )
-
-            elements.append(title)
-            elements.append(Spacer(1, 12))
-
-            # Student Details
-            student_info = [
-                ["Student Number", student_details.iloc[0]['student_number']],
-                ["Name", student_name],
-                ["Grade", student_details.iloc[0]['grade']],
-                ["Class", student_details.iloc[0]['class_name']]
-            ]
-
-            student_table = Table(student_info)
-
-            student_table.setStyle(TableStyle([
-                ('BACKGROUND', (0,0), (-1,0), colors.lightblue),
-                ('GRID', (0,0), (-1,-1), 1, colors.black),
-                ('FONTNAME', (0,0), (-1,-1), 'Helvetica')
-            ]))
-
-            elements.append(student_table)
-            elements.append(Spacer(1, 20))
-
-            # Academic Results
-            report_data = [[
-                'Subject',
-                'Term',
-                'Marks',
-                'Total',
-                'Percentage'
-            ]]
-
-            for _, row in marks_df.iterrows():
-                report_data.append([
-                    row['subject'],
-                    row['term'],
-                    row['marks_obtained'],
-                    row['total_marks'],
-                    f"{row['percentage']:.2f}%"
-                ])
-
-            report_table = Table(report_data)
-
-            report_table.setStyle(TableStyle([
-                ('BACKGROUND', (0,0), (-1,0), colors.grey),
-                ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
-                ('GRID', (0,0), (-1,-1), 1, colors.black),
-                ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-                ('BACKGROUND', (0,1), (-1,-1), colors.beige)
-            ]))
-
-            elements.append(report_table)
-            elements.append(Spacer(1, 20))
-
-            # Overall Average
-            if len(marks_df) > 0:
-                average = marks_df['percentage'].mean()
+    
+            marks_obtained = st.number_input(
+                "Marks Obtained",
+                min_value=0.0
+            )
+    
+            total_marks = st.number_input(
+                "Total Marks",
+                min_value=1.0,
+                value=100.0
+            )
+    
+            if total_marks > 0:
+                percentage = (marks_obtained / total_marks) * 100
             else:
-                average = 0
-
-            average_text = Paragraph(
-                f"<b>Overall Average:</b> {average:.2f}%",
-                styles['Heading2']
+                percentage = 0
+    
+            st.info(f"Percentage: {percentage:.2f}%")
+    
+            if st.button("Save Marks"):
+    
+                c.execute('''
+                INSERT INTO marks (
+                    student_id,
+                    subject,
+                    term,
+                    marks_obtained,
+                    total_marks,
+                    percentage
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                ''', (
+                    int(selected_student['id']),
+                    subject,
+                    term,
+                    marks_obtained,
+                    total_marks,
+                    percentage
+                ))
+    
+                conn.commit()
+    
+                st.success("Marks saved successfully!")
+    
+    # =====================================================
+    # GENERATE REPORT
+    # =====================================================
+    
+    elif menu == "Generate Report":
+    
+        st.header("📄 Generate Student Report")
+    
+        students = pd.read_sql_query(
+            "SELECT id, name || ' ' || surname as fullname FROM students",
+            conn
+        )
+    
+        if len(students) == 0:
+            st.warning("Please add students first.")
+    
+        else:
+    
+            student_option = st.selectbox(
+                "Select Student",
+                students['fullname']
             )
-
-            elements.append(average_text)
-            elements.append(Spacer(1, 20))
-
-            # Footer
-            footer = Paragraph(
-                f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M')}",
-                styles['Normal']
-            )
-
-            elements.append(footer)
-
-            # Build PDF
-            doc.build(elements)
-
-            st.success(f"PDF generated successfully: {file_name}")
-
-            with open(file_name, "rb") as pdf_file:
-                PDFbyte = pdf_file.read()
-
-            st.download_button(
-                label="⬇ Download Report",
-                data=PDFbyte,
-                file_name=file_name,
-                mime='application/octet-stream'
-            )
-
-# =====================================================
-# FOOTER
-# =====================================================
-
-st.sidebar.markdown("---")
-st.sidebar.info("School Analytics Platform v1")
+    
+            selected_student = students[
+                students['fullname'] == student_option
+            ].iloc[0]
+    
+            student_id = int(selected_student['id'])
+    
+            student_details = pd.read_sql_query(f'''
+            SELECT *
+            FROM students
+            WHERE id = {student_id}
+            ''', conn)
+    
+            marks_df = pd.read_sql_query(f'''
+            SELECT subject,
+                   term,
+                   marks_obtained,
+                   total_marks,
+                   percentage
+            FROM marks
+            WHERE student_id = {student_id}
+            ''', conn)
+    
+            st.subheader("Student Information")
+            st.dataframe(student_details)
+    
+            st.subheader("Academic Performance")
+            st.dataframe(marks_df)
+    
+            if st.button("Generate PDF Report"):
+    
+                student_name = (
+                    student_details.iloc[0]['name'] + " " +
+                    student_details.iloc[0]['surname']
+                )
+    
+                file_name = f"{student_name}_report.pdf"
+    
+                doc = SimpleDocTemplate(
+                    file_name,
+                    pagesize=A4
+                )
+    
+                styles = getSampleStyleSheet()
+                elements = []
+    
+                # Title
+                title = Paragraph(
+                    "<b>Student Academic Report</b>",
+                    styles['Title']
+                )
+    
+                elements.append(title)
+                elements.append(Spacer(1, 12))
+    
+                # Student Details
+                student_info = [
+                    ["Student Number", student_details.iloc[0]['student_number']],
+                    ["Name", student_name],
+                    ["Grade", student_details.iloc[0]['grade']],
+                    ["Class", student_details.iloc[0]['class_name']]
+                ]
+    
+                student_table = Table(student_info)
+    
+                student_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0,0), (-1,0), colors.lightblue),
+                    ('GRID', (0,0), (-1,-1), 1, colors.black),
+                    ('FONTNAME', (0,0), (-1,-1), 'Helvetica')
+                ]))
+    
+                elements.append(student_table)
+                elements.append(Spacer(1, 20))
+    
+                # Academic Results
+                report_data = [[
+                    'Subject',
+                    'Term',
+                    'Marks',
+                    'Total',
+                    'Percentage'
+                ]]
+    
+                for _, row in marks_df.iterrows():
+                    report_data.append([
+                        row['subject'],
+                        row['term'],
+                        row['marks_obtained'],
+                        row['total_marks'],
+                        f"{row['percentage']:.2f}%"
+                    ])
+    
+                report_table = Table(report_data)
+    
+                report_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0,0), (-1,0), colors.grey),
+                    ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+                    ('GRID', (0,0), (-1,-1), 1, colors.black),
+                    ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                    ('BACKGROUND', (0,1), (-1,-1), colors.beige)
+                ]))
+    
+                elements.append(report_table)
+                elements.append(Spacer(1, 20))
+    
+                # Overall Average
+                if len(marks_df) > 0:
+                    average = marks_df['percentage'].mean()
+                else:
+                    average = 0
+    
+                average_text = Paragraph(
+                    f"<b>Overall Average:</b> {average:.2f}%",
+                    styles['Heading2']
+                )
+    
+                elements.append(average_text)
+                elements.append(Spacer(1, 20))
+    
+                # Footer
+                footer = Paragraph(
+                    f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+                    styles['Normal']
+                )
+    
+                elements.append(footer)
+    
+                # Build PDF
+                doc.build(elements)
+    
+                st.success(f"PDF generated successfully: {file_name}")
+    
+                with open(file_name, "rb") as pdf_file:
+                    PDFbyte = pdf_file.read()
+    
+                st.download_button(
+                    label="⬇ Download Report",
+                    data=PDFbyte,
+                    file_name=file_name,
+                    mime='application/octet-stream'
+                )
+    
+    # =====================================================
+    # FOOTER
+    # =====================================================
+    
+    st.sidebar.markdown("---")
+    st.sidebar.info("School Analytics Platform v1")
