@@ -5,8 +5,8 @@ from google.oauth2.service_account import Credentials
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import plotly.express as px
-
-
+import streamlit as st
+import sqlite3
 import streamlit as st
 
 # -------------------------
@@ -293,13 +293,14 @@ selected_date = st.sidebar.date_input("Select Date")
 # Ensure datetime format
 selected_date = pd.to_datetime(selected_date).normalize()
 # ----------------------------
-# TABS (UNCHANGED)
+# TABS
 # ----------------------------
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "School Demographics",
     "Attendance",
     "Registered Learners",
-    "Absent Learners"
+    "Absent Learners",
+    "Time Table Generator"
 ])
 
 # ----------------------------
@@ -965,3 +966,89 @@ with tab4:
             else:
                 st.success("No absences for this learner 🎉")
 
+with tab4:
+    
+    conn = sqlite3.connect("school.db")
+    c = conn.cursor()
+    
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS timetable (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        grade TEXT,
+        day TEXT,
+        start_time TEXT,
+        end_time TEXT,
+        subject TEXT
+    )
+    """)
+    
+    conn.commit()
+    conn.close()
+
+    
+    st.title("Create Timetable")
+    
+    grade = st.selectbox(
+        "Select Grade",
+        ["Grade 8A", "Grade 8B", "Grade 9A"]
+    )
+    
+    day = st.selectbox(
+        "Day",
+        ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+    )
+    
+    start_time = st.time_input("Start Time")
+    end_time = st.time_input("End Time")
+    
+    subject = st.text_input("Subject")
+    
+    if st.button("Save Timetable"):
+    
+        conn = sqlite3.connect("school.db")
+        c = conn.cursor()
+    
+        c.execute("""
+        INSERT INTO timetable
+        (grade, day, start_time, end_time, subject)
+        VALUES (?, ?, ?, ?, ?)
+        """, (
+            grade,
+            day,
+            str(start_time),
+            str(end_time),
+            subject
+        ))
+    
+        conn.commit()
+        conn.close()
+    
+        st.success("Timetable saved successfully!")
+
+   
+
+    conn = sqlite3.connect("school.db")
+    
+    query = """
+    SELECT
+        start_time || ' - ' || end_time AS Time,
+        grade,
+        subject
+    FROM timetable
+    WHERE day = 'Monday'
+    ORDER BY start_time
+    """
+    
+    df = pd.read_sql(query, conn)
+    
+    pivot_df = df.pivot(
+        index="Time",
+        columns="grade",
+        values="subject"
+    )
+    
+    st.subheader("Monday Timetable")
+    
+    st.table(pivot_df)
+    
+    conn.close()
