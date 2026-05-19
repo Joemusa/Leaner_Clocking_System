@@ -1256,7 +1256,7 @@ with tab5:
         while current < end:
     
             next_period = current + timedelta(
-                minutes=duration
+                minutes=int(duration)
             )
     
             # SKIP LUNCH
