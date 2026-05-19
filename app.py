@@ -1306,6 +1306,10 @@ with tab5:
                 "SELECT * FROM teachers",
                 conn
             )
+            timetable_entries = []
+            
+            teacher_schedule = {}
+            class_schedule = {}
             
             days = [
                 "Monday",
