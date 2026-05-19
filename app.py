@@ -971,18 +971,46 @@ with tab5:
     import streamlit as st
     import pandas as pd
     import sqlite3
-    from datetime import time
+    from datetime import datetime, timedelta
     
-    # =========================================
-    # DATABASE CONNECTION
-    # =========================================
+    # =====================================================
+    # DATABASE
+    # =====================================================
     
     conn = sqlite3.connect("school.db", check_same_thread=False)
     c = conn.cursor()
     
-    # =========================================
-    # CREATE TABLE
-    # =========================================
+    # =====================================================
+    # CREATE TABLES
+    # =====================================================
+    
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS school_settings (
+        day TEXT,
+        start_time TEXT,
+        end_time TEXT,
+        lunch_start TEXT,
+        lunch_end TEXT,
+        period_duration INTEGER
+    )
+    """)
+    
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS teachers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        teacher_name TEXT,
+        subject TEXT
+    )
+    """)
+    
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS grade_subjects (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        grade TEXT,
+        subject TEXT,
+        periods_per_week INTEGER
+    )
+    """)
     
     c.execute("""
     CREATE TABLE IF NOT EXISTS timetable (
@@ -991,189 +1019,387 @@ with tab5:
         day TEXT,
         start_time TEXT,
         end_time TEXT,
-        subject TEXT
+        subject TEXT,
+        teacher TEXT
     )
     """)
     
     conn.commit()
     
-    # =========================================
-    # PAGE TITLE
-    # =========================================
+    # =====================================================
+    # PAGE CONFIG
+    # =====================================================
     
-    st.set_page_config(page_title="School Timetable", layout="wide")
+    st.set_page_config(
+        page_title="Automatic School Timetable Generator",
+        layout="wide"
+    )
     
-    st.title("📚 School Timetable Generator")
+    st.title("📚 Automatic School Timetable Generator")
     
-    # =========================================
-    # SIDEBAR MENU
-    # =========================================
+    # =====================================================
+    # SIDEBAR
+    # =====================================================
     
     menu = st.sidebar.selectbox(
         "Menu",
-        ["Add Timetable", "View Timetable"]
+        [
+            "School Settings",
+            "Teachers",
+            "Grade Subjects",
+            "Generate Timetable",
+            "View Timetable"
+        ]
     )
     
-    # =========================================
-    # ADD TIMETABLE
-    # =========================================
+    # =====================================================
+    # SCHOOL SETTINGS
+    # =====================================================
     
-    if menu == "Add Timetable":
+    if menu == "School Settings":
     
-        st.subheader("Add Timetable Entry")
+        st.header("⚙️ School Settings")
     
-        # Grade Selection
-        grade = st.selectbox(
-            "Select Grade",
-            [
-                "Grade 8A",
-                "Grade 8B",
-                "Grade 9A",
-                "Grade 9B",
-                "Grade 10A"
-            ]
+        days = [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    
+        selected_day = st.selectbox("Select Day", days)
+    
+        start_time = st.time_input("School Start Time")
+    
+        end_time = st.time_input("School End Time")
+    
+        lunch_start = st.time_input("Lunch Start")
+    
+        lunch_end = st.time_input("Lunch End")
+    
+        period_duration = st.number_input(
+            "Period Duration (Minutes)",
+            min_value=30,
+            max_value=90,
+            value=45
         )
     
-        # Day Selection
-        day = st.selectbox(
-            "Select Day",
-            [
-                "Monday",
-                "Tuesday",
-                "Wednesday",
-                "Thursday",
-                "Friday"
-            ]
-        )
-    
-        # Time Inputs
-        start_time = st.time_input(
-            "Start Time",
-            value=time(8, 0)
-        )
-    
-        end_time = st.time_input(
-            "End Time",
-            value=time(9, 0)
-        )
-    
-        # Subject Input
-        subject = st.selectbox(
-            "Select Subject",
-            [
-                "Mathematics",
-                "English",
-                "Science",
-                "History",
-                "Geography",
-                "Life Orientation",
-                "Accounting",
-                "Physical Science",
-                "Xitsonga",
-                "Xitsonga HL"
-            ]
-        )
-    
-        # SAVE BUTTON
-        if st.button("Save Timetable"):
+        if st.button("Save Settings"):
     
             c.execute("""
-            INSERT INTO timetable
-            (grade, day, start_time, end_time, subject)
-            VALUES (?, ?, ?, ?, ?)
+            DELETE FROM school_settings
+            WHERE day = ?
+            """, (selected_day,))
+    
+            c.execute("""
+            INSERT INTO school_settings
+            VALUES (?, ?, ?, ?, ?, ?)
             """, (
-                grade,
-                day,
+                selected_day,
                 str(start_time),
                 str(end_time),
+                str(lunch_start),
+                str(lunch_end),
+                period_duration
+            ))
+    
+            conn.commit()
+    
+            st.success("✅ Settings Saved")
+    
+    # =====================================================
+    # TEACHERS
+    # =====================================================
+    
+    if menu == "Teachers":
+    
+        st.header("👨‍🏫 Teachers")
+    
+        teacher_name = st.text_input("Teacher Name")
+    
+        subject = st.text_input("Subject")
+    
+        if st.button("Add Teacher"):
+    
+            c.execute("""
+            INSERT INTO teachers
+            (teacher_name, subject)
+            VALUES (?, ?)
+            """, (
+                teacher_name,
                 subject
             ))
     
             conn.commit()
     
-            st.success("✅ Timetable saved successfully!")
+            st.success("✅ Teacher Added")
     
-    # =========================================
-    # VIEW TIMETABLE
-    # =========================================
+        teachers_df = pd.read_sql(
+            "SELECT * FROM teachers",
+            conn
+        )
     
-    if menu == "View Timetable":
+        st.dataframe(teachers_df)
     
-        st.subheader("View Timetable")
+    # =====================================================
+    # GRADE SUBJECTS
+    # =====================================================
     
-        selected_day = st.selectbox(
-            "Select Day",
+    if menu == "Grade Subjects":
+    
+        st.header("📘 Grade Subjects")
+    
+        grade = st.selectbox(
+            "Select Grade",
             [
-                "Monday",
-                "Tuesday",
-                "Wednesday",
-                "Thursday",
-                "Friday"
+                "Grade 8",
+                "Grade 9",
+                "Grade 10",
+                "Grade 11",
+                "Grade 12"
             ]
         )
     
-        # LOAD DATA
-        query = """
+        subject = st.text_input("Subject")
+    
+        periods_per_week = st.number_input(
+            "Periods Per Week",
+            min_value=1,
+            max_value=10,
+            value=5
+        )
+    
+        if st.button("Save Subject"):
+    
+            c.execute("""
+            INSERT INTO grade_subjects
+            (grade, subject, periods_per_week)
+            VALUES (?, ?, ?)
+            """, (
+                grade,
+                subject,
+                periods_per_week
+            ))
+    
+            conn.commit()
+    
+            st.success("✅ Subject Saved")
+    
+        subjects_df = pd.read_sql(
+            "SELECT * FROM grade_subjects",
+            conn
+        )
+    
+        st.dataframe(subjects_df)
+    
+    # =====================================================
+    # GENERATE PERIODS
+    # =====================================================
+    
+    def generate_periods(
+        start_time,
+        end_time,
+        lunch_start,
+        lunch_end,
+        duration
+    ):
+    
+        periods = []
+    
+        current = datetime.strptime(start_time, "%H:%M:%S")
+    
+        end = datetime.strptime(end_time, "%H:%M:%S")
+    
+        lunch_s = datetime.strptime(lunch_start, "%H:%M:%S")
+    
+        lunch_e = datetime.strptime(lunch_end, "%H:%M:%S")
+    
+        while current < end:
+    
+            next_period = current + timedelta(minutes=duration)
+    
+            # Skip lunch
+            if current >= lunch_s and current < lunch_e:
+    
+                current = lunch_e
+                continue
+    
+            periods.append((
+                current.strftime("%H:%M"),
+                next_period.strftime("%H:%M")
+            ))
+    
+            current = next_period
+    
+        return periods
+    
+    # =====================================================
+    # GENERATE TIMETABLE
+    # =====================================================
+    
+    if menu == "Generate Timetable":
+    
+        st.header("🧠 Generate Timetable")
+    
+        if st.button("Generate Weekly Timetable"):
+    
+            c.execute("DELETE FROM timetable")
+            conn.commit()
+    
+            settings_df = pd.read_sql(
+                "SELECT * FROM school_settings",
+                conn
+            )
+    
+            subjects_df = pd.read_sql(
+                "SELECT * FROM grade_subjects",
+                conn
+            )
+    
+            teachers_df = pd.read_sql(
+                "SELECT * FROM teachers",
+                conn
+            )
+    
+            timetable_entries = []
+    
+            teacher_schedule = {}
+    
+            for _, setting in settings_df.iterrows():
+    
+                day = setting["day"]
+    
+                periods = generate_periods(
+                    setting["start_time"],
+                    setting["end_time"],
+                    setting["lunch_start"],
+                    setting["lunch_end"],
+                    setting["period_duration"]
+                )
+    
+                for grade in subjects_df["grade"].unique():
+    
+                    grade_subjects = subjects_df[
+                        subjects_df["grade"] == grade
+                    ]
+    
+                    period_index = 0
+    
+                    for _, row in grade_subjects.iterrows():
+    
+                        subject = row["subject"]
+    
+                        periods_needed = row["periods_per_week"]
+    
+                        teacher_match = teachers_df[
+                            teachers_df["subject"] == subject
+                        ]
+    
+                        if teacher_match.empty:
+                            continue
+    
+                        teacher = teacher_match.iloc[0]["teacher_name"]
+    
+                        for i in range(periods_needed):
+    
+                            if period_index >= len(periods):
+                                break
+    
+                            start_p, end_p = periods[period_index]
+    
+                            key = f"{teacher}_{day}_{start_p}"
+    
+                            # Clash Prevention
+                            if key in teacher_schedule:
+    
+                                period_index += 1
+                                continue
+    
+                            teacher_schedule[key] = True
+    
+                            timetable_entries.append((
+                                grade,
+                                day,
+                                start_p,
+                                end_p,
+                                subject,
+                                teacher
+                            ))
+    
+                            period_index += 1
+    
+            c.executemany("""
+            INSERT INTO timetable
+            (
+                grade,
+                day,
+                start_time,
+                end_time,
+                subject,
+                teacher
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            """, timetable_entries)
+    
+            conn.commit()
+    
+            st.success("✅ Timetable Generated Successfully!")
+    
+    # =====================================================
+    # VIEW TIMETABLE
+    # =====================================================
+    
+    if menu == "View Timetable":
+    
+        st.header("📅 Weekly Timetable")
+    
+        selected_grade = st.selectbox(
+            "Select Grade",
+            [
+                "Grade 8",
+                "Grade 9",
+                "Grade 10",
+                "Grade 11",
+                "Grade 12"
+            ]
+        )
+    
+        query = f"""
         SELECT
+            day,
             start_time || ' - ' || end_time AS Time,
-            grade,
             subject,
-            day
+            teacher
         FROM timetable
+        WHERE grade = '{selected_grade}'
         """
     
         df = pd.read_sql(query, conn)
     
-        # FILTER DAY
-        filtered_df = df[df["day"] == selected_day]
+        if df.empty:
     
-        # DISPLAY
-        if filtered_df.empty:
-    
-            st.warning("⚠️ No timetable records found.")
+            st.warning("⚠️ No timetable generated.")
     
         else:
     
-            timetable_df = filtered_df.pivot(
+            pivot_df = df.pivot(
                 index="Time",
-                columns="grade",
+                columns="day",
                 values="subject"
             )
     
             st.dataframe(
-                timetable_df,
+                pivot_df,
                 use_container_width=True
             )
     
-    # =========================================
-    # OPTIONAL SAMPLE DATA BUTTON
-    # =========================================
+            st.subheader("Detailed Timetable")
     
-    st.sidebar.markdown("---")
+            st.dataframe(df)
     
-    if st.sidebar.button("Load Sample Data"):
-    
-        sample_data = [
-            ("Grade 8A", "Monday", "08:00", "09:00", "Mathematics"),
-            ("Grade 8B", "Monday", "08:00", "09:00", "English"),
-            ("Grade 9A", "Monday", "08:00", "09:00", "Science"),
-            ("Grade 8A", "Monday", "09:00", "10:00", "History"),
-            ("Grade 8B", "Monday", "09:00", "10:00", "Geography"),
-            ("Grade 9A", "Monday", "09:00", "10:00", "Accounting")
-        ]
-    
-        c.executemany("""
-        INSERT INTO timetable
-        (grade, day, start_time, end_time, subject)
-        VALUES (?, ?, ?, ?, ?)
-        """, sample_data)
-    
-        conn.commit()
-    
-        st.sidebar.success("✅ Sample data loaded!")
-    
-    # =========================================
-    # CLOSE CONNECTION
-    # =========================================
+    # =====================================================
+    # CLOSE DB
+    # =====================================================
     
     conn.close()
