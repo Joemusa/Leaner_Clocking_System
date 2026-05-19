@@ -1435,6 +1435,8 @@ with tab5:
                             period_index += 1
     
             # INSERT TIMETABLE
+            st.write(timetable_entries)
+            st.write("Total Entries:", len(timetable_entries))
             c.executemany("""
             INSERT INTO timetable
             (
